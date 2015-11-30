@@ -18,8 +18,9 @@ class Engine {
   //bird frames
   PImage[] frms;
   //for bird flapping images
-  int frameCounteri=0;
-  int frameCounter=0;
+  //int frameCounteri=0;
+  //int frameCounter=0;
+    int flappingRate=2;
   
   
   
@@ -35,7 +36,7 @@ class Engine {
     
     // creating birds
     for (int i = 0; i < n; i++) {
-      floaters.add(new Floater(p.floater_vr, s, w, h));
+      floaters.add(new Floater(p.floater_vr, s, w, h, flappingRate));
     }
     
     this.w=w;
@@ -141,15 +142,17 @@ class Engine {
   
   
   void mouseDragged()  {
-    for (int i = 0; i < floaters.size(); i++) {
-        floaters.get(i).vx = addd(floaters.get(i).vx, /*floater_vr*/(mouseX-floaters.get(i).x)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y));
-        floaters.get(i).vy = addd(floaters.get(i).vy, /*floater_vr*/(mouseY-floaters.get(i).y)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y));
-     }
+    if(mouseButton == LEFT){
+      for (int i = 0; i < floaters.size(); i++) {
+          floaters.get(i).vx = addd(floaters.get(i).vx, /*floater_vr*/(mouseX-floaters.get(i).x)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y));
+          floaters.get(i).vy = addd(floaters.get(i).vy, /*floater_vr*/(mouseY-floaters.get(i).y)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y));
+      }
+    }
   }
   
  
   void mouseClicked()  {
-    if(mouseButton != RIGHT){
+    if(mouseButton == LEFT){
       for (int i = 0; i < floaters.size(); i++) {
           floaters.get(i).vx = addd(floaters.get(i).vx, /*floater_vr*/(mouseX-floaters.get(i).x)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y));
           floaters.get(i).vy = addd(floaters.get(i).vy, /*floater_vr*/(mouseY-floaters.get(i).y)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y));
@@ -175,14 +178,14 @@ class Engine {
   
   void drawbird(int i) {
       //draw a flapping bird
-      image(frms[frameCounteri], floaters.get(i).x, floaters.get(i).y, floaters.get(i).s, floaters.get(i).s);
-      frameCounter++;
-      if (frameCounter > 8) {
-        frameCounter=0;
-        frameCounteri++;
+      image(frms[floaters.get(i).frameCounteri], floaters.get(i).x, floaters.get(i).y, floaters.get(i).s, floaters.get(i).s);
+      floaters.get(i).frameCounter++;
+      if (floaters.get(i).frameCounter > flappingRate) {
+       floaters.get(i).frameCounter=0;
+       floaters.get(i).frameCounteri++;
       }
     
-      if (frameCounteri == 3) frameCounteri = 0;
+      if (floaters.get(i).frameCounteri == 3) floaters.get(i).frameCounteri = 0;
    }
    
    

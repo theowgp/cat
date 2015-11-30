@@ -6,7 +6,12 @@ class Floater {
   float vy; // velocities
   float s; // size
   
-  Floater(float floater_vr, float s, float w, float h) {
+  //for flapping 
+  int frameCounteri;
+  int frameCounter;
+  //int flappingRate  = 10;
+  
+  Floater(float floater_vr, float s, float w, float h, int flappingRate) {
     //initialize random positions and random velocities
     x = (int)random(100, w-100);
     y = (int)random(100, h-100);
@@ -15,6 +20,8 @@ class Floater {
     this.s=s;
     //size of a bird
     //s = (floater_ca + floater_ca)/2;
+    frameCounteri = (int)random(3.9999);
+    frameCounter = (int)random(flappingRate +0.999);
 
   }
   

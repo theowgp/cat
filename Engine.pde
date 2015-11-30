@@ -20,7 +20,7 @@ class Engine {
   //for bird flapping images
   //int frameCounteri=0;
   //int frameCounter=0;
-    int flappingRate=2;
+    int flappingRate;
   
   
   
@@ -30,9 +30,10 @@ class Engine {
   
   
   
-  Engine(int n, float s, Params p, float w, float h, PImage[] frms){
-    this.frms=frms;
-    this.p=p;
+  Engine(int n, float s, int flappingRate, Params p, float w, float h, PImage[] frms){
+    this.frms = frms;
+    this.p = p;
+    this.flappingRate = flappingRate;
     
     // creating birds
     for (int i = 0; i < n; i++) {
@@ -93,9 +94,9 @@ class Engine {
           else
           //allignement
           //if (d<= p.floater_cal){
-          // floaters.get(j).vx = addd(floaters.get(i).vx, floaters.get(j).vx);
-          // floaters.get(j).vy = addd(floaters.get(i).vy, floaters.get(j).vy);
-          // ac++;
+          //floaters.get(j).vx = addd(floaters.get(i).vx, floaters.get(j).vx);
+          //floaters.get(j).vy = addd(floaters.get(i).vy, floaters.get(j).vy);
+          //ac++;
           //}
           //else
           //attraction

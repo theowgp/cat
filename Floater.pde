@@ -18,6 +18,18 @@ class Floater {
 
   }
   
+  Floater(float floater_vr, float s, float w, float h, float x, float y) {
+    //initialize random positions and random velocities
+    this.x = x;
+    this.y = y;
+    vx = random(-floater_vr, floater_vr);
+    vy = random(-floater_vr, floater_vr);
+    this.s=s;
+    //size of a bird
+    //s = (floater_ca + floater_ca)/2;
+
+  }
+  
   
 }  
   

@@ -10,6 +10,10 @@ class Engine {
   
   //array of floaters
   ArrayList<Floater> floaters = new ArrayList<Floater>();
+  //size
+  float s;
+  //minimal allowed distance between birds
+  float eps=5;
   
   //bird frames
   PImage[] frms;
@@ -36,8 +40,7 @@ class Engine {
     
     this.w=w;
     this.h=h;
-    
-    
+    this.s=s;
   }
   
   
@@ -49,8 +52,10 @@ class Engine {
     //if ( floaters.get(j).x + ddx + floaters.get(j).vx > floaters.get(j).s && floaters.get(j).x + ddx + floaters.get(j).vx < w - floaters.get(j).s) floaters.get(j).x +=  floaters.get(j).vx + ddx;
     //if ( floaters.get(j).y + ddy + floaters.get(j).vy > floaters.get(j).s && floaters.get(j).y + ddy + floaters.get(j).vy < h - floaters.get(j).s) floaters.get(j).y +=  floaters.get(j).vy + ddy;
     
-    floaters.get(j).x += floaters.get(j).vx;
-    floaters.get(j).y += floaters.get(j).vy;
+    if(allow(floaters.get(j).x + floaters.get(j).vx, floaters.get(j).y + floaters.get(j).vy, j)){
+      floaters.get(j).x += floaters.get(j).vx;
+      floaters.get(j).y += floaters.get(j).vy;
+    }
   
     
     
@@ -60,6 +65,14 @@ class Engine {
     if(floaters.get(j).y<=0) floaters.get(j).y = h-1;
     if(floaters.get(j).y>=h) floaters.get(j).y = 0;
   }
+  boolean allow(float x, float y, int j){
+    for (int i = 0; i < floaters.size(); i++) {
+      if((i!=j)&&(dist(x, y, floaters.get(i).x, floaters.get(i).y) < eps)){
+        return false;                
+      }
+    }
+    return true;
+  }
   
   
   
@@ -67,6 +80,7 @@ class Engine {
   void determine_velocity(){
     for (int j = 0; j < floaters.size(); j++) {
       //determine relative velocities
+      int ac = 1;
       for (int i = 0; i < floaters.size(); i++) {
         if (i!=j){//doesn't consider itself
           float d   = dist(floaters.get(i).x, floaters.get(i).y, floaters.get(j).x, floaters.get(j).y);
@@ -75,14 +89,28 @@ class Engine {
             floaters.get(j).vx = addd(floaters.get(j).vx, -((floaters.get(i).x-floaters.get(j).x)/d) * p.floater_crf * dforce_attraction(d));
             floaters.get(j).vy = addd(floaters.get(j).vy, -((floaters.get(i).y-floaters.get(j).y)/d) * p.floater_crf * dforce_attraction(d));
           }
-          else//attraction
-          //if(d >= floater_ca && d <= floater_ca + bird_sight){
+          else
+          //allignement
+          //if (d<= p.floater_cal){
+          // floaters.get(j).vx = addd(floaters.get(i).vx, floaters.get(j).vx);
+          // floaters.get(j).vy = addd(floaters.get(i).vy, floaters.get(j).vy);
+          // ac++;
+          //}
+          //else
+          //attraction
+          //if(d >= p.floater_ca && d <= p.floater_ca + p.bird_sight){
           if(d <= p.floater_ca){
             floaters.get(j).vx = addd(floaters.get(j).vx, ((floaters.get(i).x-floaters.get(j).x)/d) * p.floater_caf * dforce_attraction(d));
             floaters.get(j).vy = addd(floaters.get(j).vy, ((floaters.get(i).y-floaters.get(j).y)/d) * p.floater_caf * dforce_attraction(d));
           }
         }
       }
+      //for the allignement
+      //this combination makes birds fly nicely from right lower corner to the uper
+      //floaters.get(j).vx = (floaters.get(j).vx+random(-p.floater_vr, 0)) /(ac+1)  ;
+      //floaters.get(j).vy = (floaters.get(j).vy+random(-p.floater_vr, 0)) /(ac+1)  ;
+      //floaters.get(j).vx /=ac; 
+      //floaters.get(j).vy /=ac; 
     }
   }
   
@@ -112,7 +140,7 @@ class Engine {
   
   
   
-  void mouseDragged(int mouseX, int mouseY)  {
+  void mouseDragged()  {
     for (int i = 0; i < floaters.size(); i++) {
         floaters.get(i).vx = addd(floaters.get(i).vx, /*floater_vr*/(mouseX-floaters.get(i).x)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y));
         floaters.get(i).vy = addd(floaters.get(i).vy, /*floater_vr*/(mouseY-floaters.get(i).y)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y));
@@ -120,11 +148,16 @@ class Engine {
   }
   
  
-  void mouseClicked(int mouseX, int mouseY)  {
-    for (int i = 0; i < floaters.size(); i++) {
-        floaters.get(i).vx = addd(floaters.get(i).vx, /*floater_vr*/(mouseX-floaters.get(i).x)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y));
-        floaters.get(i).vy = addd(floaters.get(i).vy, /*floater_vr*/(mouseY-floaters.get(i).y)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y));
-     }
+  void mouseClicked()  {
+    if(mouseButton != RIGHT){
+      for (int i = 0; i < floaters.size(); i++) {
+          floaters.get(i).vx = addd(floaters.get(i).vx, /*floater_vr*/(mouseX-floaters.get(i).x)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y));
+          floaters.get(i).vy = addd(floaters.get(i).vy, /*floater_vr*/(mouseY-floaters.get(i).y)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y));
+       }
+    }
+    else{
+      floaters.add(new Floater(p.floater_vr, s, w, h, mouseX-s/2, mouseY-s/2));
+    }
   }
   
  

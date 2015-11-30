@@ -52,7 +52,7 @@ void setup() {
 
   size(640, 480);
   background(bg);
-  frameRate(30);
+  frameRate(25);
   noFill(); 
   stroke(0);
   strokeWeight(1);
@@ -68,11 +68,11 @@ void draw() {
 
 
 void mouseDragged()  {
-  eng.mouseDragged(mouseX, mouseY);
+  eng.mouseDragged();
 }
 
 void mouseClicked()  {
-  eng.mouseClicked(mouseX, mouseY);
+  eng.mouseClicked();
 }
 
 

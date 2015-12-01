@@ -15,6 +15,7 @@ class Engine {
   //minimal allowed distance between birds
   float eps=5;
   
+  
   //bird frames
   PImage[] frms;
   //for bird flapping images
@@ -55,8 +56,8 @@ class Engine {
     //if ( floaters.get(j).y + ddy + floaters.get(j).vy > floaters.get(j).s && floaters.get(j).y + ddy + floaters.get(j).vy < h - floaters.get(j).s) floaters.get(j).y +=  floaters.get(j).vy + ddy;
     
     if(allow(floaters.get(j).x + floaters.get(j).vx, floaters.get(j).y + floaters.get(j).vy, j)){
-      floaters.get(j).x += floaters.get(j).vx;
-      floaters.get(j).y += floaters.get(j).vy;
+      floaters.get(j).x += floaters.get(j).vx;// * p.friction;
+      floaters.get(j).y += floaters.get(j).vy ;//* p.friction;
     }
   
     
@@ -93,12 +94,12 @@ class Engine {
           }
           else
           //allignement
-          //if (d<= p.floater_cal){
-          //floaters.get(j).vx = addd(floaters.get(i).vx, floaters.get(j).vx);
-          //floaters.get(j).vy = addd(floaters.get(i).vy, floaters.get(j).vy);
-          //ac++;
-          //}
-          //else
+          if (d<= p.floater_cal){
+          floaters.get(j).vx = addd(floaters.get(i).vx, floaters.get(j).vx);
+          floaters.get(j).vy = addd(floaters.get(i).vy, floaters.get(j).vy);
+          ac++;
+          }
+          else
           //attraction
           //if(d >= p.floater_ca && d <= p.floater_ca + p.bird_sight){
           if(d <= p.floater_ca){
@@ -107,12 +108,14 @@ class Engine {
           }
         }
       }
+      
       //for the allignement
       //this combination makes birds fly nicely from right lower corner to the uper
       //floaters.get(j).vx = (floaters.get(j).vx+random(-p.floater_vr, 0)) /(ac+1)  ;
       //floaters.get(j).vy = (floaters.get(j).vy+random(-p.floater_vr, 0)) /(ac+1)  ;
-      //floaters.get(j).vx /=ac; 
-      //floaters.get(j).vy /=ac; 
+      floaters.get(j).vx /=ac; 
+      floaters.get(j).vy /=ac;
+       
     }
   }
   
@@ -179,6 +182,8 @@ class Engine {
   
   void drawbird(int i) {
       //draw a flapping bird
+      //translate(width/2-img.width/2, height/2-img.height/2);
+      //rotate(counter*TWO_PI/360);
       image(frms[floaters.get(i).frameCounteri], floaters.get(i).x, floaters.get(i).y, floaters.get(i).s, floaters.get(i).s);
       floaters.get(i).frameCounter++;
       if (floaters.get(i).frameCounter > flappingRate) {
@@ -186,7 +191,7 @@ class Engine {
        floaters.get(i).frameCounteri++;
       }
     
-      if (floaters.get(i).frameCounteri == 3) floaters.get(i).frameCounteri = 0;
+      if (floaters.get(i).frameCounteri >= 3) floaters.get(i).frameCounteri = 0;
    }
    
    

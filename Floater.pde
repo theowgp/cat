@@ -20,8 +20,8 @@ class Floater {
     this.s=s;
     //size of a bird
     //s = (floater_ca + floater_ca)/2;
-    frameCounteri = (int)random(3.9999);
-    frameCounter = (int)random(flappingRate +0.999);
+    frameCounteri = (int)random(3.999);
+    frameCounter = 0;//(int)random(flappingRate +0.999);
 
   }
   

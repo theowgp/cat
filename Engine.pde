@@ -48,27 +48,27 @@ class Engine {
   
   
   
-  void Move(int j) {
+  void Move(Floater f) {
     //close borders   
-    //if ( floaters.get(j).x + floaters.get(j).vx > floaters.get(j).s && floaters.get(j).x  + floaters.get(j).vx < w - floaters.get(j).s) floaters.get(j).x +=  floaters.get(j).vx;
-    //if ( floaters.get(j).y + floaters.get(j).vy > floaters.get(j).s && floaters.get(j).y  + floaters.get(j).vy < h - floaters.get(j).s) floaters.get(j).y +=  floaters.get(j).vy;
+    //if ( floaters.get(j).x + f.vx > f.s && f.x  + f.vx < w - f.s) f.x +=  f.vx;
+    //if ( f.y + f.vy > f.s && f.y  + f.vy < h - f.s) f.y +=  f.vy;
     
-    if(Allow(floaters.get(j), j)){
-      floaters.get(j).x += floaters.get(j).vx * p.friction;
-      floaters.get(j).y += floaters.get(j).vy * p.friction;
+    if(Allow(f)){
+      f.x += f.vx * p.friction;
+      f.y += f.vy * p.friction;
     }
     
     //to make a looping border of the frame
-    if(floaters.get(j).x<=0) floaters.get(j).x = w-1;
-    if(floaters.get(j).x>=w) floaters.get(j).x = 0;
-    if(floaters.get(j).y<=0) floaters.get(j).y = h-1;
-    if(floaters.get(j).y>=h) floaters.get(j).y = 0;
+    if(f.x<=0) f.x = w-1;
+    if(f.x>=w) f.x = 0;
+    if(f.y<=0) f.y = h-1;
+    if(f.y>=h) f.y = 0;
   }
   
   //does not allow floaters to move to close
-  boolean Allow(Floater f, int j){
+  boolean Allow(Floater f){
    for (int i = 0; i < floaters.size(); i++) {
-     if((i!=j)&&(dist(f.x+f.vx, f.y+f.vy, floaters.get(i).x, floaters.get(i).y) < eps)){
+     if((f != floaters.get(i))&&(dist(f.x+f.vx, f.y+f.vy, floaters.get(i).x, floaters.get(i).y) < eps)){
        return false;                
      }
    }
@@ -206,49 +206,63 @@ class Engine {
        
     //move each bird and draw it  
     for (int i = 0; i < floaters.size(); i++) {
-      Move(i);
-      Drawbird(i);
+      Move(floaters.get(i));
+      Drawbird(floaters.get(i));
+      //Drawboid(floaters.get(i));
     }
   }
   
   
   float a0=100;
   float a1;
-  void Drawbird(int i) {
+  void Drawbird(Floater f) {
       //draw a flapping bird
       //rotate
       pushMatrix();
-      translate(floaters.get(i).x + floaters.get(i).s/2, floaters.get(i).y + floaters.get(i).s/2);
-      rotate(DirectionAngle(floaters.get(i)));
-      //DirectionAngle(floaters.get(i));
-      //a1 = DirectionAngle(floaters.get(i));
+      translate(f.x + f.s/2, f.y + f.s/2);
+      rotate(DirectionAngle(f));
+      //DirectionAngle(f);
+      //a1 = DirectionAngle(f);
       //if (a1 != a0){
       //  println("angle=", a1);
       //  a0=a1;
       //}
-      image(frms[floaters.get(i).frameCounteri], -floaters.get(i).s/2, -floaters.get(i).s/2, floaters.get(i).s, floaters.get(i).s);
+      image(frms[f.frameCounteri], -f.s/2, -f.s/2, f.s, f.s);
       popMatrix();
-      floaters.get(i).frameCounter++;
-      if (floaters.get(i).frameCounter > flappingRate) {
-       floaters.get(i).frameCounter=0;
-       floaters.get(i).frameCounteri++;
+      f.frameCounter++;
+      if (f.frameCounter > flappingRate) {
+       f.frameCounter=0;
+       f.frameCounteri++;
       }
     
-      if (floaters.get(i).frameCounteri >= 3) floaters.get(i).frameCounteri = 0;
+      if (f.frameCounteri >= 3) f.frameCounteri = 0;
    }
    
+   void Drawboid(Floater f) {
+      //draw a boid with velocity vector
+      //rotate
+      pushMatrix();
+      translate(f.x + f.s/2, f.y + f.s/2);
+      
+      line(0, 0, f.vx*10, f.vy*10);
+      ellipseMode(CENTER); 
+      fill(0);
+      ellipse(f.vx*10, f.vy*10, 5, 5);
+      
+      fill(255);
+      ellipseMode(CENTER); 
+      ellipse(0, 0, 10, 10);
+      //line(-f.head.x*20, -f.head.y*20, f.head.x*20, f.head.y*20);
+      //ellipseMode(CENTER); 
+      //ellipse(f.head.x*20, f.head.y*20, 10, 10);
+      //ellipseMode(CENTER); 
+      //ellipse(-f.head.x*20, -f.head.y*20, 10, 10);
+      
+      popMatrix();
+   }
+   
+   
    float DirectionAngle(Floater f){
-     //line(0, 0, f.vx*10, f.vy*10);
-     //ellipseMode(CENTER); 
-     //fill(0);
-     //ellipse(f.vx*10, f.vy*10, 5, 5);
-     
-     //fill(255);
-     //line(-f.head.x*30, -f.head.y*30, f.head.x*30, f.head.y*30);
-     //ellipseMode(CENTER); 
-     //ellipse(f.head.x*30, f.head.y*30, 10, 10);
-     
-     
      //find out the cos between the head vector of a bird and its velocity vector
      float cos = (float)((f.head.x*f.vx + f.vy*f.head.y) / (Math.sqrt((f.vx*f.vx + f.vy*f.vy)) * Math.sqrt((f.head.x*f.head.x + f.head.y*f.head.y))));
      

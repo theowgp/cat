@@ -21,7 +21,7 @@ class Engine {
   //for bird flapping images
   //int frameCounteri=0;
   //int frameCounter=0;
-    int flappingRate;
+  int flappingRate;
   
   
   
@@ -49,11 +49,9 @@ class Engine {
   
   
   void Move(int j) {
-    //float ddx=0;
-    //float ddy=0;
     //close borders   
-    //if ( floaters.get(j).x + ddx + floaters.get(j).vx > floaters.get(j).s && floaters.get(j).x + ddx + floaters.get(j).vx < w - floaters.get(j).s) floaters.get(j).x +=  floaters.get(j).vx + ddx;
-    //if ( floaters.get(j).y + ddy + floaters.get(j).vy > floaters.get(j).s && floaters.get(j).y + ddy + floaters.get(j).vy < h - floaters.get(j).s) floaters.get(j).y +=  floaters.get(j).vy + ddy;
+    //if ( floaters.get(j).x + floaters.get(j).vx > floaters.get(j).s && floaters.get(j).x  + floaters.get(j).vx < w - floaters.get(j).s) floaters.get(j).x +=  floaters.get(j).vx;
+    //if ( floaters.get(j).y + floaters.get(j).vy > floaters.get(j).s && floaters.get(j).y  + floaters.get(j).vy < h - floaters.get(j).s) floaters.get(j).y +=  floaters.get(j).vy;
     
     if(Allow(floaters.get(j), j)){
       floaters.get(j).x += floaters.get(j).vx * p.friction;
@@ -184,8 +182,6 @@ class Engine {
     if(mouseButton == LEFT){
       for (int i = 0; i < floaters.size(); i++) {
           Interract(floaters.get(i), mouseX, mouseY);
-          //floaters.get(i).vx += /*floater_vr*/(mouseX-floaters.get(i).x)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y);
-          //floaters.get(i).vy += /*floater_vr*/(mouseY-floaters.get(i).y)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y);
       }
     }
   }
@@ -195,9 +191,7 @@ class Engine {
     if(mouseButton == LEFT){
       for (int i = 0; i < floaters.size(); i++) {
           Interract(floaters.get(i), mouseX, mouseY);
-          //floaters.get(i).vx += /*floater_vr*/(mouseX-floaters.get(i).x)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y);
-          //floaters.get(i).vy += /*floater_vr*/(mouseY-floaters.get(i).y)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y);
-       }
+      }
     }
     else{
       floaters.add(new Floater(p.floater_vr, s, w, h, mouseX-s/2, mouseY-s/2));

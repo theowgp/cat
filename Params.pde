@@ -8,7 +8,7 @@ class Params{
  
   
   //independent movement's laws
-  public float floater_cr=10;//repulsion range
+  public float floater_cr=20;//repulsion range
   public float floater_crf=4;//repulsion force
   public float floater_cal=70;//allignment range
   public float floater_ca= 250;//attraction range

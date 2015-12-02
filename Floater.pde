@@ -5,6 +5,8 @@ class Floater {
   float vx; 
   float vy; // velocities
   float s; // size
+  //direction in which points a bitd's head on the picture
+  PVector head= new PVector(-1, 1);
   
   //for flapping 
   int frameCounteri;

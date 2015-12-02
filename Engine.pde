@@ -38,7 +38,7 @@ class Engine {
     
     // creating birds
     for (int i = 0; i < n; i++) {
-      floaters.add(new Floater(p.floater_vr, s, w, h, flappingRate));
+      floaters.add(new Floater(p.floater_vr, s, w, h));
     }
     
     this.w=w;
@@ -60,15 +60,13 @@ class Engine {
       floaters.get(j).y += floaters.get(j).vy * p.friction;
     }
     
-  
-    
-    
     //to make a looping border of the frame
     if(floaters.get(j).x<=0) floaters.get(j).x = w-1;
     if(floaters.get(j).x>=w) floaters.get(j).x = 0;
     if(floaters.get(j).y<=0) floaters.get(j).y = h-1;
     if(floaters.get(j).y>=h) floaters.get(j).y = 0;
   }
+  
   //does not allow floaters to move to close
   boolean Allow(Floater f, int j){
    for (int i = 0; i < floaters.size(); i++) {
@@ -104,10 +102,7 @@ class Engine {
           }
         }
       }
-      
-      //for the allignement
-      //println("vx= ",floaters.get(j).vx);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      //println("vy= ",floaters.get(j).vy);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+           
     }
   }
   
@@ -222,15 +217,21 @@ class Engine {
     }
   }
   
+  
+  float a0=100;
+  float a1;
   void Drawbird(int i) {
       //draw a flapping bird
       //rotate
       pushMatrix();
       translate(floaters.get(i).x + floaters.get(i).s/2, floaters.get(i).y + floaters.get(i).s/2);
-      //rotate(DirectionAngle(floaters.get(i)));
-      //println("angle=",DirectionAngle(floaters.get(i)));
-      //println("vx=);
-      rotate(2*PI);
+      rotate(DirectionAngle(floaters.get(i)));
+      //DirectionAngle(floaters.get(i));
+      //a1 = DirectionAngle(floaters.get(i));
+      //if (a1 != a0){
+      //  println("angle=", a1);
+      //  a0=a1;
+      //}
       image(frms[floaters.get(i).frameCounteri], -floaters.get(i).s/2, -floaters.get(i).s/2, floaters.get(i).s, floaters.get(i).s);
       popMatrix();
       floaters.get(i).frameCounter++;
@@ -243,8 +244,25 @@ class Engine {
    }
    
    float DirectionAngle(Floater f){
+     //line(0, 0, f.vx*10, f.vy*10);
+     //ellipseMode(CENTER); 
+     //fill(0);
+     //ellipse(f.vx*10, f.vy*10, 5, 5);
+     
+     //fill(255);
+     //line(-f.head.x*30, -f.head.y*30, f.head.x*30, f.head.y*30);
+     //ellipseMode(CENTER); 
+     //ellipse(f.head.x*30, f.head.y*30, 10, 10);
+     
+     
      //find out the cos between the head vector of a bird and its velocity vector
-     float cos = (f.head.x*f.vx + f.vy*f.head.y) / ((f.vx*f.vx + f.vy*f.vy) * (f.head.x*f.head.x + f.head.y*f.head.y));
+     float cos = (float)((f.head.x*f.vx + f.vy*f.head.y) / (Math.sqrt((f.vx*f.vx + f.vy*f.vy)) * Math.sqrt((f.head.x*f.head.x + f.head.y*f.head.y))));
+     
+     //a1 = cos;
+     //if (a1 != a0){
+     //  println("cos=", a1);
+     //  a0=a1;
+     //}
      
      //check if the end point of the velocity vector is to the left or to the right from the head vector of the bird
      //float x = f.x + f.vx;
@@ -256,8 +274,8 @@ class Engine {
      float y = f.vy;
      float vpoint = y - x*f.head.y/f.head.x;
      
-     if(vpoint >= 0) return acos(cos);
-     else return -acos(cos);
+     if(vpoint >= 0) return -acos(cos);
+     else return acos(cos);
    }
    
    

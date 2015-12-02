@@ -6,14 +6,14 @@ class Floater {
   float vy; // velocities
   float s; // size
   //direction in which points a bitd's head on the picture
-  PVector head= new PVector(-1, 1);
+  PVector head= new PVector(-1, -1);
   
   //for flapping 
   int frameCounteri;
   int frameCounter;
   //int flappingRate  = 10;
   
-  Floater(float floater_vr, float s, float w, float h, int flappingRate) {
+  Floater(float floater_vr, float s, float w, float h) {
     //initialize random positions and random velocities
     x = (int)random(100, w-100);
     y = (int)random(100, h-100);

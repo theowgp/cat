@@ -31,7 +31,7 @@ PImage[] frms = new PImage[4];
 Params p = new Params();
 
 //Engine(int n, float s, int flappingRate,Params p, float w, float h, PImage[] frms){...}
-Engine eng = new Engine(3, 50, 2, p, w, h, frms);
+Engine eng = new Engine(1, 50, 2, p, w, h, frms);
 
 
 

@@ -13,7 +13,7 @@ class Engine {
   //size
   float s;
   //minimal allowed distance between birds
-  float eps=5;
+  float eps=4;
   
   
   //bird frames
@@ -69,13 +69,14 @@ class Engine {
     if(floaters.get(j).y<=0) floaters.get(j).y = h-1;
     if(floaters.get(j).y>=h) floaters.get(j).y = 0;
   }
+  //does not allow floaters to move to close
   boolean Allow(Floater f, int j){
-    for (int i = 0; i < floaters.size(); i++) {
-      if((i!=j)&&(dist(f.x+f.vx, f.y+f.vy, floaters.get(i).x, floaters.get(i).y) < eps)){
-        return false;                
-      }
-    }
-    return true;
+   for (int i = 0; i < floaters.size(); i++) {
+     if((i!=j)&&(dist(f.x+f.vx, f.y+f.vy, floaters.get(i).x, floaters.get(i).y) < eps)){
+       return false;                
+     }
+   }
+   return true;
   }
   
   
@@ -84,72 +85,53 @@ class Engine {
   void DetermineVelocity(){
     for (int j = 0; j < floaters.size(); j++) {
       //determine relative velocities
-      int ac = 1;
       for (int i = 0; i < floaters.size(); i++) {
         if (i!=j){//doesn't consider itself
           float d = dist(floaters.get(i).x, floaters.get(i).y, floaters.get(j).x, floaters.get(j).y);
           //repulsion
           if(d <= p.floater_cr){
-            //floaters.get(j).vx = Addd(floaters.get(j).vx, -((floaters.get(i).x-floaters.get(j).x)/d) * p.floater_crf * DForceAttraction(d));
-            //floaters.get(j).vy = Addd(floaters.get(j).vy, -((floaters.get(i).y-floaters.get(j).y)/d) * p.floater_crf * DForceAttraction(d));
-            Interract(floaters.get(j), floaters.get(i), true);
+            Interract(floaters.get(j), floaters.get(i), false);
           }
           else
           //allignement
-          //if (d<= p.floater_cal){
-          // floaters.get(j).vx +=  floaters.get(j).vx;
-          // floaters.get(j).vy +=  floaters.get(j).vy;
-          //ac++;
-          //}
-          //else
+          if (d<= p.floater_cal){
+            Interract(floaters.get(j), floaters.get(i), true);      
+          }
+          else
           //attraction
-          //if(d >= p.floater_ca && d <= p.floater_ca + p.bird_sight){
           if(d <= p.floater_ca){
-            //floaters.get(j).vx = Addd(floaters.get(j).vx, ((floaters.get(i).x-floaters.get(j).x)/d) * p.floater_caf * DForceAttraction(d));
-            //floaters.get(j).vy = Addd(floaters.get(j).vy, ((floaters.get(i).y-floaters.get(j).y)/d) * p.floater_caf * DForceAttraction(d));
             Interract(floaters.get(j), floaters.get(i), false);
           }
         }
       }
       
       //for the allignement
-      //this combination makes birds fly nicely from right lower corner to the uper
-      //floaters.get(j).vx = (floaters.get(j).vx+random(-p.floater_vr, 0)) /(ac+1)  ;
-      //floaters.get(j).vy = (floaters.get(j).vy+random(-p.floater_vr, 0)) /(ac+1)  ;
-      //floaters.get(j).vx /=ac; 
-      //floaters.get(j).vy /=ac;
-       
+      //println("vx= ",floaters.get(j).vx);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      //println("vy= ",floaters.get(j).vy);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     }
   }
   
-  //floaters mowment laws
-  float DForceRepulsion(float d){// returns value from [0, 1] d ranges from 0, floater_cr
-    return (-d/p.floater_cr + 1); //thr smaller the distance d the stronger the repulsion 
-  }
-  float DForceAttraction(float d){// returns value from [0, 1] dranges from floater_ca to width+height 
-    return ( (d-p.floater_ca)/(w+h-p.floater_ca) );//thr bigger the distance d the stronger the repulsion
-  }
+
   
   //interaction with each other
-  void Interract(Floater fj, Floater fi, boolean repulsion){
+  void Interract(Floater fj, Floater fi, boolean allignment){
+     if(allignment){
+       fj.vx = (fj.vx + fi.vx)/2;    
+       fj.vy = (fj.vy + fi.vy)/2;
+       return;
+     }
+     
+     //velocity change
      float df = dist(fi.x, fi.y, fj.x, fj.y);
-     float dvx = ((fi.x-fj.x)/df); 
-     float dvy = ((fi.y-fj.y)/df);
+     float dvx = ((fi.x-fj.x)/df) * RelativeForce(df); 
+     float dvy = ((fi.y-fj.y)/df) * RelativeForce(df);
      
-     if(repulsion){
-       dvx *= - p.floater_crf * DForceRepulsion(df);
-       dvy *= - p.floater_crf * DForceRepulsion(df);
-     }
-     else{
-       dvx *=  p.floater_crf * DForceAttraction(df);
-       dvy *=  p.floater_crf * DForceAttraction(df);       
-     }
-     
+     //new velocity
      float newvx = fj.vx + dvx;
      float newvy = fj.vy + dvy;
      
+     //if the new velocity exceeds allowed limits normilize it to the maximum  allowed speed
      float dnewv  = (float)Math.sqrt(newvx*newvx + newvy*newvy);
-     
      if(dnewv > p.floater_vr)
      {
        newvx /= dnewv/p.floater_vr;
@@ -161,26 +143,19 @@ class Engine {
      fj.vy=newvy;
   }
   
-  //Outer influence (with a mouse currently 02.12.15)
-  void InterractOut(Floater fj, float x, float y, boolean repulsion){
+  //outer influence (with a mouse currently 02.12.15)
+  void Interract(Floater fj, float x, float y){
+     //velocity change
      float df = dist(x, y, fj.x, fj.y);
-     float dvx = ((x-fj.x)/df); 
-     float dvy = ((y-fj.y)/df);
+     float dvx = ((x-fj.x)/df) * RelativeForce(df); 
+     float dvy = ((y-fj.y)/df) * RelativeForce(df);
      
-     if(repulsion){
-       dvx *= - p.floater_crf * DForceRepulsion(df);
-       dvy *= - p.floater_crf * DForceRepulsion(df);
-     }
-     else{
-       dvx *=  p.floater_crf * DForceAttraction(df);
-       dvy *=  p.floater_crf * DForceAttraction(df);       
-     }
-     
+     //new velocity
      float newvx = fj.vx + dvx;
      float newvy = fj.vy + dvy;
      
+     //if the new velocity exceeds allowed limits normilize it to the maximum  allowed speed
      float dnewv  = (float)Math.sqrt(newvx*newvx + newvy*newvy);
-     
      if(dnewv > p.floater_vr)
      {
        newvx /= dnewv/p.floater_vr;
@@ -190,6 +165,18 @@ class Engine {
      
      fj.vx=newvx;
      fj.vy=newvy;
+  }
+   
+  //Force depending on the relative distance d between birds and force parameters such as repulsion force p.floater_crf and attraction force p.floater_caf
+  float RelativeForce(float d){// d in [0, floater_cr] DForce in [p.floater_crf, 0]; d in  (floater_cr, floater_ca] DForce in (0, p.floater_caf];  
+    if(d<=p.floater_cr){
+      return -p.floater_crf *(-d/p.floater_cr + 1); //thr smaller the distance d the stronger the repulsion
+    }
+    else
+    if(p.floater_cr < d && d <= p.floater_ca){
+      return (float)(   p.floater_crf * ( (d-p.floater_cr)/(p.floater_ca - p.floater_cr) )    );//thr bigger the distance d the stronger the repulsion
+    }
+    return 0;
   }
  
   
@@ -201,7 +188,7 @@ class Engine {
   void mouseDragged()  {
     if(mouseButton == LEFT){
       for (int i = 0; i < floaters.size(); i++) {
-          InterractOut(floaters.get(i), mouseX, mouseY, false);
+          Interract(floaters.get(i), mouseX, mouseY);
           //floaters.get(i).vx += /*floater_vr*/(mouseX-floaters.get(i).x)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y);
           //floaters.get(i).vy += /*floater_vr*/(mouseY-floaters.get(i).y)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y);
       }
@@ -212,7 +199,7 @@ class Engine {
   void mouseClicked()  {
     if(mouseButton == LEFT){
       for (int i = 0; i < floaters.size(); i++) {
-          InterractOut(floaters.get(i), mouseX, mouseY, false);
+          Interract(floaters.get(i), mouseX, mouseY);
           //floaters.get(i).vx += /*floater_vr*/(mouseX-floaters.get(i).x)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y);
           //floaters.get(i).vy += /*floater_vr*/(mouseY-floaters.get(i).y)/dist(mouseX, mouseY, floaters.get(i).x, floaters.get(i).y);
        }
@@ -237,12 +224,13 @@ class Engine {
   
   void Drawbird(int i) {
       //draw a flapping bird
+      //rotate
       pushMatrix();
       translate(floaters.get(i).x + floaters.get(i).s/2, floaters.get(i).y + floaters.get(i).s/2);
-      rotate(DirectionAngle(floaters.get(i)));
-      println("angle=",DirectionAngle(floaters.get(i)));
+      //rotate(DirectionAngle(floaters.get(i)));
+      //println("angle=",DirectionAngle(floaters.get(i)));
       //println("vx=);
-      //rotate(PI/1.5);
+      rotate(2*PI);
       image(frms[floaters.get(i).frameCounteri], -floaters.get(i).s/2, -floaters.get(i).s/2, floaters.get(i).s, floaters.get(i).s);
       popMatrix();
       floaters.get(i).frameCounter++;
@@ -257,10 +245,12 @@ class Engine {
    float DirectionAngle(Floater f){
      //find out the cos between the head vector of a bird and its velocity vector
      float cos = (f.head.x*f.vx + f.vy*f.head.y) / ((f.vx*f.vx + f.vy*f.vy) * (f.head.x*f.head.x + f.head.y*f.head.y));
+     
      //check if the end point of the velocity vector is to the left or to the right from the head vector of the bird
      //float x = f.x + f.vx;
      //float y = f.y + f.vy;
      //float vpoint = y - x*f.head.y/f.head.x + f.x*f.head.y/f.head.x - f.y;
+     
      //(simplified check) the location of the bird doesn't matter for the relative position of its head and velocity vectors
      float x = f.vx;
      float y = f.vy;

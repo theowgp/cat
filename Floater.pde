@@ -13,10 +13,10 @@ class Floater {
   int frameCounter;
   //int flappingRate  = 10;
   
-  Floater(float floater_vr, float s, float w, float h) {
+  Floater(float floater_vr, float s) {
     //initialize random positions and random velocities
-    x = (int)random(100, w-100);
-    y = (int)random(100, h-100);
+    x = (int)random(100, width-100);
+    y = (int)random(100, height-100);
     vx = random(-floater_vr, floater_vr);
     vy = random(-floater_vr, floater_vr);
     this.s=s;
@@ -27,7 +27,7 @@ class Floater {
 
   }
   
-  Floater(float floater_vr, float s, float w, float h, float x, float y) {
+  Floater(float floater_vr, float s, float x, float y) {
     //initialize random positions and random velocities
     this.x = x;
     this.y = y;

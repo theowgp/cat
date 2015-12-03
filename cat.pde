@@ -23,10 +23,10 @@ void setup() {
   parameters = new Params();
   
   //Engine(        int number_of_birds, float size, Params parameters){...}
-  eng = new Engine(1,                   50,         parameters);
+  eng = new Engine(1,                   30,         parameters);
   
-  //Drawer(           ArrayList<Floater> floaters, int flappingRate, java.lang.Object object){
-  drawer = new Drawer(eng.floaters,                 2,               this); 
+  //Drawer(           ArrayList<Floater> floaters, int flappingRate, boolean open_frame, java.lang.Object object){
+  drawer = new Drawer(eng.floaters,                 2,               false,              this); 
   
   
   background(drawer.bg);
@@ -49,14 +49,21 @@ void draw() {
 
 
 void mouseDragged()  {
-eng.mouseDragged();
+  eng.mouseDragged();
 }
 
 
 void mouseClicked()  {
-eng.mouseClicked();
+  eng.mouseClicked();
 }
 
+void mousePressed(){
+  eng.mousePressed(); 
+}
+
+void mouseReleased(){
+  eng.mouseReleased(); 
+}
 
 
 

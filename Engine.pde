@@ -1,6 +1,9 @@
 
 class Engine {
   
+  
+  
+  
   //parameters and constants such as repulsion/attraction range, force rtc.
   Params p;
   
@@ -11,9 +14,10 @@ class Engine {
   //minimal allowed distance between birds
   float eps=4;
   
+  //for throwing a boid
+  int pbk=-1;//pressed boid k
   
     
-  
   
   
   
@@ -28,9 +32,10 @@ class Engine {
     
     // creating birds
     for (int i = 0; i < n; i++) {
-      floaters.add(new Floater(p.floater_vr, s, width, height));
+      floaters.add(new Floater(p.floater_vr, s));
     }
  }
+  
   
   
   void IterateFrame(){
@@ -40,21 +45,19 @@ class Engine {
     }
   }
   
+  
+  
+  
+  
   void Move(Floater f) {
     //close borders   
-    //if ( floaters.get(j).x + f.vx > f.s && f.x  + f.vx < w - f.s) f.x +=  f.vx;
+    //if ( f.x + f.vx > f.s && f.x  + f.vx < w - f.s) f.x +=  f.vx;
     //if ( f.y + f.vy > f.s && f.y  + f.vy < h - f.s) f.y +=  f.vy;
     
     if(Allow(f)){
-      f.x += f.vx * p.friction;
-      f.y += f.vy * p.friction;
+      f.x += f.vx;// * p.friction;
+      f.y += f.vy;// * p.friction;
     }
-    
-    //to make a looping border of the frame
-    if(f.x<=0) f.x = width-1;
-    if(f.x>=width) f.x = 0;
-    if(f.y<=0) f.y = height-1;
-    if(f.y>=height) f.y = 0;
   }
   
   //does not allow floaters to move to close
@@ -70,7 +73,15 @@ class Engine {
   
   
   
+  
   void DetermineVelocities(){
+    //flocking interraction
+    //Flocking();
+    //elasticity interaction
+    Elasticity();    
+  }
+  
+  void Flocking(){
     for (int j = 0; j < floaters.size(); j++) {
       //determine relative velocities
       for (int i = 0; i < floaters.size(); i++) {
@@ -92,8 +103,15 @@ class Engine {
           }
         }
       }
-           
     }
+  }
+  
+  void Elasticity(){
+    for (int i = 1; i < floaters.size(); i++) {
+      InteractElasticly(floaters.get(i-1), floaters.get(i));
+      InteractElasticly(floaters.get(floaters.size()-i), floaters.get(floaters.size()-i-1));
+    }
+    
   }
   
 
@@ -108,8 +126,8 @@ class Engine {
      
      //velocity change
      float df = dist(fi.x, fi.y, fj.x, fj.y);
-     float dvx = ((fi.x-fj.x)/df) * RelativeForce(df); 
-     float dvy = ((fi.y-fj.y)/df) * RelativeForce(df);
+     float dvx = ((fi.x-fj.x)/df) * RelativeForce(df, p.floater_cr, p.floater_crf, p.floater_cal, p.floater_ca, p.floater_caf); 
+     float dvy = ((fi.y-fj.y)/df) * RelativeForce(df, p.floater_cr, p.floater_crf, p.floater_cal, p.floater_ca, p.floater_caf);
      
      //new velocity
      float newvx = fj.vx + dvx;
@@ -132,8 +150,8 @@ class Engine {
   void Interract(Floater fj, float x, float y){
      //velocity change
      float df = dist(x, y, fj.x, fj.y);
-     float dvx = ((x-fj.x)/df) * RelativeForce(df); 
-     float dvy = ((y-fj.y)/df) * RelativeForce(df);
+     float dvx = ((x-fj.x)/df) * RelativeForce(df, p.floater_cr, p.floater_crf, p.floater_cal, p.floater_ca, p.floater_caf); 
+     float dvy = ((y-fj.y)/df) * RelativeForce(df, p.floater_cr, p.floater_crf, p.floater_cal, p.floater_ca, p.floater_caf);
      
      //new velocity
      float newvx = fj.vx + dvx;
@@ -151,50 +169,131 @@ class Engine {
      fj.vx=newvx;
      fj.vy=newvy;
   }
-   
+  
   //Force depending on the relative distance d between birds and force parameters such as repulsion force p.floater_crf and attraction force p.floater_caf
-  float RelativeForce(float d){// d in [0, floater_cr] DForce in [p.floater_crf, 0]; d in  (floater_cr, floater_ca] DForce in (0, p.floater_caf];  
-    if(d<=p.floater_cr){
-      return -p.floater_crf *(-d/p.floater_cr + 1); //thr smaller the distance d the stronger the repulsion
+  float RelativeForce(float d, float fcr, float frf, float fcal, float fca, float faf){// d in [0, floater_cr] DForce in [p.floater_crf, 0]; d in  (floater_cr, floater_ca] DForce in (0, p.floater_caf];  
+    if(d<=fcr){
+      return -frf *(-d/fcr + 1); //thr smaller the distance d the stronger the repulsion
     }
     else
-    if(p.floater_cr < d && d <= p.floater_ca){
-      return (float)(   p.floater_crf * ( (d-p.floater_cr)/(p.floater_ca - p.floater_cr) )    );//thr bigger the distance d the stronger the repulsion
+    if( d <= fcal){
+      return 0;
+    }
+    else
+    if(d <= fca){
+      return (float)(   faf * ( (d-fcal)/(fca - fcal) )    );//the bigger the distance d the stronger the repulsion
     }
     return 0;
   }
  
   
+  //interaction with each other
+  void InteractElasticly(Floater fj, Floater fi){
+     //velocity change
+     float df = dist(fi.x, fi.y, fj.x, fj.y);
+     float dvx = ((fi.x-fj.x)/df) * RelativeForce(df, p.elstc_dr-p.elstc_eps, p.elstc_f, p.elstc_dr+p.elstc_eps, p.elstc_db, p.elstc_f); 
+     float dvy = ((fi.y-fj.y)/df) * RelativeForce(df, p.elstc_dr-p.elstc_eps, p.elstc_f, p.elstc_dr+p.elstc_eps, p.elstc_db, p.elstc_f);
+     
+     //new velocity
+     float newvx = fj.vx + dvx;
+     float newvy = fj.vy + dvy;
+     
+     //if the new velocity exceeds allowed limits normilize it to the maximum  allowed speed
+     float dnewv  = (float)Math.sqrt(newvx*newvx + newvy*newvy);
+     if(dnewv > p.elstc_vr)
+     {
+      newvx /= dnewv/p.elstc_vr;
+       
+      newvy /= dnewv/p.elstc_vr;
+     }
+     
+     fj.vx=newvx;
+     fj.vy=newvy;
+  }
   
   
   
   
   
-  void mouseDragged()  {
-    if(mouseButton == LEFT){
-      for (int i = 0; i < floaters.size(); i++) {
-          Interract(floaters.get(i), mouseX, mouseY);
-      }
+  
+  void mouseClicked()  {
+    if(mouseButton == RIGHT){
+      floaters.add(new Floater(p.floater_vr, s, mouseX-s/2, mouseY-s/2));
     }
   }
   
  
-  void mouseClicked()  {
-    if(mouseButton == LEFT){
-      for (int i = 0; i < floaters.size(); i++) {
-          Interract(floaters.get(i), mouseX, mouseY);
-      }
+ void mouseDragged()  {
+    if(pbk>=0){
+         floaters.get(pbk).x=mouseX-floaters.get(pbk).s/2;
+         floaters.get(pbk).y=mouseY-floaters.get(pbk).s/2;
+         floaters.get(pbk).vx = 0;
+         floaters.get(pbk).vy = 0;
     }
     else{
-      floaters.add(new Floater(p.floater_vr, s, width, height, mouseX-s/2, mouseY-s/2));
+      for (int i = 0; i < floaters.size(); i++) {
+        Interract(floaters.get(i), mouseX, mouseY);
+      }
     }
   }
-  
- 
  
   
+  
+  void mousePressed()  {
+    if(mouseButton == LEFT){
+      //find out which boid is pressed, if it is pressed
+      for (int i = 0; i < floaters.size(); i++) {
+          if(pmouseX > floaters.get(i).x && pmouseX < floaters.get(i).x+floaters.get(i).s && pmouseY > floaters.get(i).y && pmouseY < floaters.get(i).y + floaters.get(i).s){
+            pbk=i;
+          }
+      }
+      if(pbk>=0){
+        floaters.get(pbk).x=mouseX-floaters.get(pbk).s/2;
+        floaters.get(pbk).y=mouseY-floaters.get(pbk).s/2;
+        floaters.get(pbk).vx = 0;
+        floaters.get(pbk).vy = 0;
+      }
+      // if no boid has been pressed then (flocking)Interract
+      else{
+        for (int i = 0; i < floaters.size(); i++) {
+          Interract(floaters.get(i), mouseX, mouseY);
+        }
+      }
+    }
+  }
  
-   
+ 
+  void mouseReleased()  {
+    if(mouseButton == LEFT){
+      if(pbk>=0){
+         //floaters.get(pbk).x = mouseX - floaters.get(pbk).s/2;
+         //floaters.get(pbk).y = mouseY - floaters.get(pbk).s/2;
+         
+         //determine the velocity at which to throw the ball
+         //new velocity
+         float newvx = (mouseX-pmouseX);
+         float newvy = (mouseY-pmouseY);
+         
+         //if the new velocity exceeds allowed limits normilize it to the maximum  allowed speed
+         float dnewv  = (float)Math.sqrt(newvx*newvx + newvy*newvy);
+         if(dnewv > p.elstc_vr)
+         {
+          newvx /= dnewv/p.elstc_vr;
+           
+          newvy /= dnewv/p.elstc_vr;
+         }
+         
+         floaters.get(pbk).vx = newvx;
+         floaters.get(pbk).vy = newvy;
+      }
+    }
+    pbk=-1;
+  }
+
+ 
+ 
+ 
+}   
    
 
    
@@ -206,5 +305,4 @@ class Engine {
   
   
   
-} 
   

@@ -142,8 +142,10 @@ class Engine {
        newvy /= dnewv/p.floater_vr;
      }
      
-     fj.vx=newvx;
-     fj.vy=newvy;
+     if(!fj.still){
+       fj.vx=newvx;
+       fj.vy=newvy;
+     }
   }
   
   //outer influence (with a mouse currently 02.12.15)
@@ -166,8 +168,10 @@ class Engine {
        newvy /= dnewv/p.floater_vr;
      }
      
-     fj.vx=newvx;
-     fj.vy=newvy;
+     if(!fj.still){
+       fj.vx=newvx;
+       fj.vy=newvy;
+     }
   }
   
   //Force depending on the relative distance d between birds and force parameters such as repulsion force p.floater_crf and attraction force p.floater_caf
@@ -207,8 +211,10 @@ class Engine {
       newvy /= dnewv/p.elstc_vr;
      }
      
-     fj.vx=newvx;
-     fj.vy=newvy;
+     if(!fj.still){
+       fj.vx=newvx;
+       fj.vy=newvy;
+     }
   }
   
   
@@ -243,6 +249,7 @@ class Engine {
     if(mouseButton == LEFT){
       //find out which boid is pressed, if it is pressed
       for (int i = 0; i < floaters.size(); i++) {
+          //check if the pointer is in the square surrounding a boid
           if(pmouseX > floaters.get(i).x && pmouseX < floaters.get(i).x+floaters.get(i).s && pmouseY > floaters.get(i).y && pmouseY < floaters.get(i).y + floaters.get(i).s){
             pbk=i;
           }
@@ -252,6 +259,7 @@ class Engine {
         floaters.get(pbk).y=mouseY-floaters.get(pbk).s/2;
         floaters.get(pbk).vx = 0;
         floaters.get(pbk).vy = 0;
+        floaters.get(pbk).still = true; 
       }
       // if no boid has been pressed then (flocking)Interract
       else{
@@ -285,9 +293,11 @@ class Engine {
          
          floaters.get(pbk).vx = newvx;
          floaters.get(pbk).vy = newvy;
+         floaters.get(pbk).still = false;
+         pbk=-1;
       }
     }
-    pbk=-1;
+    
   }
 
  

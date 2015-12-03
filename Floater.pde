@@ -7,6 +7,7 @@ class Floater {
   float s; // size
   //direction in which points a bitd's head on the picture
   PVector head= new PVector(-1, -1);
+  boolean still=false;//do not allow add velocity if pressed with a Mouse Button 
   
   //for flapping 
   int frameCounteri;

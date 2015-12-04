@@ -12,77 +12,38 @@ class Force {
   
   
   //independent movement's laws
-  float r_repulsion;//repulsion range
-  float f_repulsion;//repulsion force
-  float r_still;//allignment range
-  float r_attraction;//attraction range
-  float f_attraction;//attraction force
+  float r_repulsion=30;//repulsion range
+  float f_repulsion=4;//repulsion force
+  float r_still=50;//allignment range
+  float r_attraction= 250;//attraction range
+  float f_attraction=2;//attraction force
   //public float bird_sigh1=250 ;
   
   // constraining the range(and velocitfloaters[j].y range) at which birds can move at a time
-  float floater_vr;
-  
-  //minimal allowed distance between birds
-  protected float eps;
-  
-  protected float friction;
+  float floater_vr=10;
   
   
   
   
   
-  Force(float rr, float fr, float rs, float ra, float fa, float fvr, float e, float frct){
+  Force(float rr, float fr, float rs, float ra, float fa, float fvr){
     //independent movement's laws
-    r_repulsion = rr;
-    f_repulsion = fr;
-    r_still = rs;
-    r_attraction = ra;
-    f_attraction = fa;
+    r_repulsion=rr;
+    f_repulsion=fr;
+    r_still=rs;
+    r_attraction= ra;
+    f_attraction=fa;
     
-    eps=e;
     
-    friction = frct;
     
-    floater_vr = fvr;
+    floater_vr=fvr;
  }
   
   
-  
-  
-  
-  
-  
-  protected void Move() {
-    for (int i = 0; i < floaters.size(); i++) {
-      if(Allow(floaters.get(i))){
-        floaters.get(i).x += floaters.get(i).vx * friction;
-        floaters.get(i).y += floaters.get(i).vy * friction;
-      }
-    }
-  }
-  
-  //does not allow floaters to move to close
-  protected boolean Allow(Floater f){
-   for (int i = 0; i < floaters.size(); i++) {
-     if((f != floaters.get(i))&&(dist(f.x+f.vx, f.y+f.vy, floaters.get(i).x, floaters.get(i).y) < eps)){
-       return false;                
-     }
-   }
-   return true;
-  }
-  
-  
-  
-  
-  
-  
-  
-  
-  //virtuall   
-  void Act(){}
+   //virtuall   
+   void Act(){}
   
 
-  
 
   
   //interaction with each other

@@ -66,12 +66,12 @@ class Drawer{
  
   
   void draw() {
-    //ConnectFloaters();
+     ConnectFloaters();
     
     //draw each floater
     for (int i = 0; i < floaters.size(); i++) {
-      Drawbird(floaters.get(i));
-      //Drawboid(floaters.get(i));
+      //Drawbird(floaters.get(i));
+      Drawboid(floaters.get(i));
     }
   }
   

@@ -21,6 +21,7 @@ class Drawer{
   AudioPlayer player;
   Minim minim;//audio context
   
+  //if true frame of the the window is open and looped
   boolean open_frame;
   
 
@@ -65,17 +66,16 @@ class Drawer{
  
   
   void draw() {
-    //draw floaters
-    //connect consequent floaters  
-    ConnectFloaters();
+     ConnectFloaters();
     
     //draw each floater
     for (int i = 0; i < floaters.size(); i++) {
-     //Drawbird(floaters.get(i));
-     Drawboid(floaters.get(i));
+      //Drawbird(floaters.get(i));
+      Drawboid(floaters.get(i));
     }
   }
   
+  //changes boundary values of coordinates of floaters depending on the type of the frame(open-looped or closed) 
   void Frame(Floater f){
     if(open_frame){
       //to make a looping border of the frame
@@ -93,7 +93,8 @@ class Drawer{
     }
   }
   
-  void ConnectFloaters(){//connects consequent floaters with lines
+  //connects consequent floaters with lines
+  void ConnectFloaters(){
     fill(0);
     strokeWeight(2); 
     for (int i = 1; i < floaters.size(); i++) {
@@ -107,13 +108,14 @@ class Drawer{
 
   void Drawbird(Floater f) {
     Frame(f);
-    //draw a flapping bird
+    
     //rotate
     pushMatrix();
     translate(f.x + f.s/2, f.y + f.s/2);
     rotate(DirectionAngle(f));
     image(frms[f.frameCounteri], -f.s/2, -f.s/2, f.s, f.s);
     popMatrix();
+    
     f.frameCounter++;
     if (f.frameCounter > flappingRate) {
      f.frameCounter=0;
@@ -123,35 +125,7 @@ class Drawer{
     if (f.frameCounteri >= 3) f.frameCounteri = 0;
    }
    
-   
-   
-   
-   void Drawboid(Floater f) {
-      Frame(f);
-      //draw a boid with velocity vector
-      //rotate
-      pushMatrix();
-      translate(f.x + f.s/2, f.y + f.s/2);
-      
-      strokeWeight(2); 
-      //line(0, 0, f.vx*10, f.vy*10);
-      ellipseMode(CENTER); 
-      fill(0);
-      //ellipse(f.vx*10, f.vy*10, 6, 6);
-      
-      fill(255);
-      ellipseMode(CENTER); 
-      ellipse(0, 0, f.s/2, f.s/2);
-      //line(-f.head.x*20, -f.head.y*20, f.head.x*20, f.head.y*20);
-      //ellipseMode(CENTER); 
-      //ellipse(f.head.x*20, f.head.y*20, 10, 10);
-      //ellipseMode(CENTER); 
-      //ellipse(-f.head.x*20, -f.head.y*20, 10, 10);
-      
-      popMatrix();
-   }
-   
-   
+   //do direct the bird in a fkying direction
    float DirectionAngle(Floater f){
      //find out the cos between the head vector of a bird and its velocity vector
      float cos = (float)((f.head.x*f.vx + f.vy*f.head.y) / (Math.sqrt((f.vx*f.vx + f.vy*f.vy)) * Math.sqrt((f.head.x*f.head.x + f.head.y*f.head.y))));
@@ -175,6 +149,30 @@ class Drawer{
      if(vpoint >= 0) return -acos(cos);
      else return acos(cos);
    }
+   
+   
+   
+   void Drawboid(Floater f) {
+      Frame(f);
+      
+      pushMatrix();
+      translate(f.x + f.s/2, f.y + f.s/2);
+      strokeWeight(2); 
+      fill(255);
+      ellipseMode(CENTER); 
+      ellipse(0, 0, f.s/2, f.s/2);
+      //
+      //line(-f.head.x*20, -f.head.y*20, f.head.x*20, f.head.y*20);
+      //ellipseMode(CENTER); 
+      //ellipse(f.head.x*20, f.head.y*20, 10, 10);
+      //ellipseMode(CENTER); 
+      //ellipse(-f.head.x*20, -f.head.y*20, 10, 10);
+      //     
+      popMatrix();
+   }
+   
+   
+   
    
   
   

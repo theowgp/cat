@@ -15,9 +15,12 @@ class Engine {
   //for throwing a boid
   int pbk=-1;//pressed boid k
   
-  //two fundamental forces
+  //three fundamental forces: flocking, elasticity and friction
   Elasticity elasticity;
   Flocking flocking;
+  float friction;
+  
+ 
  
   
     
@@ -25,13 +28,13 @@ class Engine {
   
   
   
-  
-  
-  
-  Engine(int n, float s, Elasticity elst, Flocking flk){
+  Engine(int n, float s, Elasticity elst, Flocking flk, float frct){
     this.s=s;
+    this.friction=frct;
+    
     this.elasticity=elst;
     this.flocking=flk;
+    
     
     
     //creating floaters
@@ -42,6 +45,7 @@ class Engine {
     elasticity.SetFloaters(floaters);
     flocking.SetFloaters(floaters);
  }
+  
   
   
   
@@ -57,13 +61,9 @@ class Engine {
   
   
   void Move(Floater f) {
-    //close borders   
-    //if ( f.x + f.vx > f.s && f.x  + f.vx < w - f.s) f.x +=  f.vx;
-    //if ( f.y + f.vy > f.s && f.y  + f.vy < h - f.s) f.y +=  f.vy;
-    
     if(Allow(f)){
-      f.x += f.vx;// * p.friction;
-      f.y += f.vy;// * p.friction;
+      f.x += f.vx * friction;
+      f.y += f.vy * friction;
     }
   }
   
@@ -82,8 +82,8 @@ class Engine {
   
   
   void DetermineVelocities(){
-    //flocking.Act();    
-    elasticity.Act();
+    //flocking.Apply();    
+    elasticity.Apply();
   }
   
  
@@ -97,14 +97,14 @@ class Engine {
   
   
   
-  
+  //spawn a floater
   void mouseClicked()  {
     if(mouseButton == RIGHT){
       floaters.add(new Floater(flocking.floater_vr, s, mouseX-s/2, mouseY-s/2));
     }
   }
   
- 
+ //drag a seazed pbk-th floater 
  void mouseDragged()  {
     if(pbk>=0){
          floaters.get(pbk).x=mouseX-floaters.get(pbk).s/2;
@@ -120,7 +120,8 @@ class Engine {
   }
  
   
-  
+  //if a floater is pressed then grab it and drag it othervise induce flocking force
+  //pbk - indeks of the siezed floater
   void mousePressed()  {
     if(mouseButton == LEFT){
       //find out which boid is pressed, if it is pressed
@@ -147,28 +148,13 @@ class Engine {
   }
  
  
+  //to release the floater from the grip
   void mouseReleased()  {
     if(mouseButton == LEFT){
       if(pbk>=0){
-         //floaters.get(pbk).x = mouseX - floaters.get(pbk).s/2;
-         //floaters.get(pbk).y = mouseY - floaters.get(pbk).s/2;
-         
          //determine the velocity at which to throw the ball
-         //new velocity
-         float newvx = (mouseX-pmouseX);
-         float newvy = (mouseY-pmouseY);
-         
-         //if the new velocity exceeds allowed limits normilize it to the maximum  allowed speed
-         float dnewv  = (float)Math.sqrt(newvx*newvx + newvy*newvy);
-         if(dnewv > elasticity.floater_vr)
-         {
-          newvx /= dnewv/elasticity.floater_vr;
-           
-          newvy /= dnewv/elasticity.floater_vr;
-         }
-         
-         floaters.get(pbk).vx = newvx;
-         floaters.get(pbk).vy = newvy;
+         elasticity.AddVelocity(floaters.get(pbk), mouseX-pmouseX,  mouseY-pmouseY);
+         //make a floater movable again
          floaters.get(pbk).still = false;
          pbk=-1;
       }

@@ -35,14 +35,17 @@ class Force {
     f_attraction=fa;
     
     
-    
     floater_vr=fvr;
  }
   
   
-   //virtuall   
-   void Act(){}
   
+  
+  
+   //virtuall   
+   void Apply(){}
+  
+
 
 
   
@@ -53,23 +56,7 @@ class Force {
      float dvx = ((fi.x-fj.x)/df) * RelativeForce(df, r_repulsion, f_repulsion, r_still, r_attraction, f_attraction); 
      float dvy = ((fi.y-fj.y)/df) * RelativeForce(df, r_repulsion, f_repulsion, r_still, r_attraction, f_attraction);
      
-     //new velocity
-     float newvx = fj.vx + dvx;
-     float newvy = fj.vy + dvy;
-     
-     //if the new velocity exceeds allowed limits normilize it to the maximum  allowed speed
-     float dnewv  = (float)Math.sqrt(newvx*newvx + newvy*newvy);
-     if(dnewv > floater_vr)
-     {
-       newvx /= dnewv/floater_vr;
-       
-       newvy /= dnewv/floater_vr;
-     }
-     
-     if(!fj.still){
-       fj.vx=newvx;
-       fj.vy=newvy;
-     }
+     AddVelocity(fj, dvx, dvy);
   }
   
   //outer influence (with a mouse currently 02.12.15)
@@ -78,10 +65,15 @@ class Force {
      float df = dist(x, y, fj.x, fj.y);
      float dvx = ((x-fj.x)/df) * RelativeForce(df, r_repulsion, f_repulsion, r_still, r_attraction, f_attraction); 
      float dvy = ((y-fj.y)/df) * RelativeForce(df, r_repulsion, f_repulsion, r_still, r_attraction, f_attraction);
-     
-     //new velocity
-     float newvx = fj.vx + dvx;
-     float newvy = fj.vy + dvy;
+
+     AddVelocity(fj, dvx, dvy);
+  }
+  
+  //if the velocity is too large normilize it
+  void AddVelocity(Floater f, float vx, float vy){
+    //new velocity
+     float newvx = f.vx + vx;
+     float newvy = f.vy + vy;
      
      //if the new velocity exceeds allowed limits normilize it to the maximum  allowed speed
      float dnewv  = (float)Math.sqrt(newvx*newvx + newvy*newvy);
@@ -92,9 +84,9 @@ class Force {
        newvy /= dnewv/floater_vr;
      }
      
-     if(!fj.still){
-       fj.vx=newvx;
-       fj.vy=newvy;
+     if(!f.still){
+       f.vx=newvx;
+       f.vy=newvy;
      }
   }
   

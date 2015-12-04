@@ -8,30 +8,53 @@ import ddf.minim.*;
 
 
 
-Params parameters;
+
 Engine eng;
 Drawer drawer;
 
 
+  float f_repulsion=4;//repulsion force
+  float r_still=50;//allignment range
+  float r_attraction= 250;//attraction range
+  float f_attraction=2;//attraction force
+  
 
 
 
 void setup() {
   size(640, 480);
-  //set forces  
-  //                               Force(float rr, float fr, float rs, float ra, float fa, float fvr);
-  Flocking     flocking = new Flocking(        30,        4,       50,      250,        2,        10);
-  //                             Force(float rr, float fr, float rs, float ra,                                     float fa, float fvr);
-  Elasticity elasticity = new Elasticity(  30-3,       10,     30+3,       (float)Math.sqrt(width*width+height*height),  10,        10);
+  //set main forces  
+  Flocking     flocking = new Flocking(      30, //repulsion range
+                                             4,  //repulsion force    
+                                             50, //allignment range     
+                                             250,//attraction range       
+                                             2,  //attraction force     
+                                             10 //constraining velocity      
+                                             );
+  
+  Elasticity elasticity = new Elasticity(    30-3,//repulsion range
+                                             10,  //elastic force      
+                                             30+3,//still range        
+                                             (float)Math.sqrt(width*width+height*height),  //attraction range    
+                                             10,  //elastic force       
+                                             10  //constraining velocity      
+                                             );
   
   
-  //set main Engin
-  //Engine(        int number_of_birds, float size, Elasticity, Flocking){...}
-  eng = new Engine(1,                   30,         elasticity, flocking);
+  //set Engin
+  eng = new Engine( 1,          //number of floaters
+                    30,         //size of a floater 
+                    elasticity, //slastic force 
+                    flocking,   //flocking force
+                    1           //friction coefficient
+                    );  
   
   //set Drawer
-  //Drawer(           ArrayList<Floater> floaters, int flappingRate, boolean open_frame, java.lang.Object object){
-  drawer = new Drawer(eng.floaters,                 2,               false,              this); 
+  drawer = new Drawer( eng.floaters,                  
+                       2,           //flapping rate    
+                       false,        //the frame is open       
+                       this         //for Minim
+                       );
   
   
   background(drawer.bg);

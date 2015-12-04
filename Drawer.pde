@@ -66,7 +66,7 @@ class Drawer{
  
   
   void draw() {
-     ConnectFloaters();
+    ConnectFloaters();
     
     //draw each floater
     for (int i = 0; i < floaters.size(); i++) {
@@ -76,7 +76,7 @@ class Drawer{
   }
   
   //changes boundary values of coordinates of floaters depending on the type of the frame(open-looped or closed) 
-  void Frame(Floater f){
+  void FrameType(Floater f){
     if(open_frame){
       //to make a looping border of the frame
       if(f.x<=-f.s/2)     f.x = width-1;
@@ -107,7 +107,7 @@ class Drawer{
 
 
   void Drawbird(Floater f) {
-    Frame(f);
+    FrameType(f);
     
     //rotate
     pushMatrix();
@@ -153,7 +153,7 @@ class Drawer{
    
    
    void Drawboid(Floater f) {
-      Frame(f);
+      FrameType(f);
       
       pushMatrix();
       translate(f.x + f.s/2, f.y + f.s/2);

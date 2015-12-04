@@ -9,8 +9,7 @@ class Engine {
   ArrayList<Floater> floaters = new ArrayList<Floater>();
   //size of a bird
   float s;
-  //minimal allowed distance between birds
-  float eps=4;
+  
   
   //for throwing a boid
   int pbk=-1;//pressed boid k
@@ -18,6 +17,9 @@ class Engine {
   //two fundamental forces
   Elasticity elasticity;
   Flocking flocking;
+  
+  //used here only to call Move()
+  Force force;
  
   
     
@@ -28,10 +30,14 @@ class Engine {
   
   
   
-  Engine(int n, float s, Elasticity elst, Flocking flk){
-    this.s=s;
-    this.elasticity=elst;
-    this.flocking=flk;
+  Engine(int n, float s, Elasticity elst, Flocking flk, Force frc){
+    this.s = s;
+    elasticity = elst;
+    flocking = flk;
+    force = frc;
+    
+    
+    
     
     
     //creating floaters
@@ -41,57 +47,25 @@ class Engine {
     //Pass the floaters to the Forces
     elasticity.SetFloaters(floaters);
     flocking.SetFloaters(floaters);
+    force.SetFloaters(floaters);
  }
   
   
   
   void IterateFrame(){
     DetermineVelocities();
-    for (int i = 0; i < floaters.size(); i++) {
-      Move(floaters.get(i));
-    }
+    force.Move();
   }
   
-  
-  
-  
-  
-  void Move(Floater f) {
-    //close borders   
-    //if ( f.x + f.vx > f.s && f.x  + f.vx < w - f.s) f.x +=  f.vx;
-    //if ( f.y + f.vy > f.s && f.y  + f.vy < h - f.s) f.y +=  f.vy;
     
-    if(Allow(f)){
-      f.x += f.vx;// * p.friction;
-      f.y += f.vy;// * p.friction;
-    }
-  }
-  
-  //does not allow floaters to move to close
-  boolean Allow(Floater f){
-   for (int i = 0; i < floaters.size(); i++) {
-     if((f != floaters.get(i))&&(dist(f.x+f.vx, f.y+f.vy, floaters.get(i).x, floaters.get(i).y) < eps)){
-       return false;                
-     }
-   }
-   return true;
-  }
-  
-  
-  
-  
-  
   void DetermineVelocities(){
-    //flocking.Act();    
-    elasticity.Act();
+    flocking.Act();    
+    //elasticity.Act();
   }
   
  
 
  
- 
- 
-  
  
   
   

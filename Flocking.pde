@@ -24,7 +24,7 @@ class Flocking extends Force {
   
   
   Flocking(float rr, float fr, float rs, float ra, float fa, float fvr){
-    super(rr, fr, rs, ra, fa, fvr);
+    super(rr, fr, rs, ra, fa, fvr, 0, 0);
    
      
   }

@@ -1,14 +1,10 @@
 import ddf.minim.*;
  
  
- float w=640;
- float h=480;
- 
 
 
 
 
-Params parameters;
 Engine eng;
 Drawer drawer;
 
@@ -19,6 +15,7 @@ Drawer drawer;
 void setup() {
   size(640, 480);
   //set forces  
+  Force force = new Force(0, 0, 0, 0, 0, 0, 5, 0.5);
   //                               Force(float rr, float fr, float rs, float ra, float fa, float fvr);
   Flocking     flocking = new Flocking(        30,        4,       50,      250,        2,        10);
   //                             Force(float rr, float fr, float rs, float ra,                                     float fa, float fvr);
@@ -26,8 +23,8 @@ void setup() {
   
   
   //set main Engin
-  //Engine(        int number_of_birds, float size, Elasticity, Flocking){...}
-  eng = new Engine(1,                   30,         elasticity, flocking);
+  //Engine(        int number_of_birds, float size, Elasticity, Flocking, force);
+  eng = new Engine(1,                   50,         elasticity, flocking, force);
   
   //set Drawer
   //Drawer(           ArrayList<Floater> floaters, int flappingRate, boolean open_frame, java.lang.Object object){

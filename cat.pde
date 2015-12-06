@@ -1,22 +1,13 @@
 import ddf.minim.*;
  
  
- float w=640;
- float h=480;
- 
-
-
-
 
 
 Engine eng;
 Drawer drawer;
 
 
-  float f_repulsion=4;//repulsion force
-  float r_still=50;//allignment range
-  float r_attraction= 250;//attraction range
-  float f_attraction=2;//attraction force
+
   
 
 

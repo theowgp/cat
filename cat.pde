@@ -8,6 +8,7 @@ Drawer drawer;
 
 
 
+
   
 
 
@@ -33,17 +34,18 @@ void setup() {
   
   
   //set Engin
-  eng = new Engine( 1,          //number of floaters
-                    30,         //size of a floater 
+  eng = new Engine( 3,          //number of floaters
+                    15,         //size of a floater 
                     elasticity, //slastic force 
                     flocking,   //flocking force
                     1           //friction coefficient
                     );  
   
   //set Drawer
-  drawer = new Drawer( eng.floaters,                  
+  drawer = new Drawer(null,//eng.floaters,                  
                        2,           //flapping rate    
-                       false,        //the frame is open       
+                       false,        //the frame is open  
+                       true,         //connect floaters
                        this         //for Minim
                        );
   
@@ -61,8 +63,24 @@ void setup() {
 void draw() {
   background(drawer.bg);
   
-  eng.IterateFrame(); 
+  eng.IterateFrame();
+  //draw floaters
+  drawer.SetFloaters(eng.floaters);
+  drawer.SetConnect_floaters(true);
   drawer.draw();
+  //draw birds
+  //drawer.SetConnect_floaters(false);
+  //drawer.SetFloaters(eng.birds);
+  //drawer.draw();
+  
+  
+  //to test the IsInDashAreaOf() function
+  //for (int i = 1; i < eng.floaters.size(); i++) {
+  //  float xx = eng.floaters.get(i-1).x + (eng.floaters.get(i).x - eng.floaters.get(i-1).x)/2 -eng.floaters.get(i-1).s*2;
+  //  float yy = eng.floaters.get(i-1).y + (eng.floaters.get(i).y - eng.floaters.get(i-1).y)/2 +eng.floaters.get(i-1).s/3;
+  //  //ellipse(xx, yy, 10, 10);
+  //  eng.IsInDashedAreaOf( xx, yy,   eng.floaters.get(i-1),    eng.floaters.get(i) );
+  //}
 }
 
 

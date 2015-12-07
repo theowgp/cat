@@ -8,6 +8,9 @@ class Drawer{
   
   //array of floaters
   ArrayList<Floater> floaters = new ArrayList<Floater>();
+  void SetFloaters(ArrayList<Floater> floaters){
+    this.floaters=floaters;
+  }
   
   int flappingRate;
   
@@ -24,6 +27,10 @@ class Drawer{
   //if true frame of the the window is open and looped
   boolean open_frame;
   
+  boolean connect_floaters;
+  void SetConnect_floaters(boolean connect_floaters){
+    this.connect_floaters = connect_floaters;
+  }
 
 
   
@@ -32,10 +39,11 @@ class Drawer{
   
   
   
-  Drawer(ArrayList<Floater> floaters, int flappingRate, boolean open_frame, java.lang.Object object){
+  Drawer(ArrayList<Floater> floaters, int flappingRate, boolean open_frame, boolean connect_floaters, java.lang.Object object){
     this.floaters = floaters;
     this.flappingRate = flappingRate;
     this.open_frame=open_frame;
+    this.connect_floaters=connect_floaters;
     
     LoadImages();
     LoadSound(object);
@@ -66,7 +74,7 @@ class Drawer{
  
   
   void draw() {
-    ConnectFloaters();
+    if(connect_floaters) ConnectFloaters();
     
     //draw each floater
     for (int i = 0; i < floaters.size(); i++) {
@@ -98,7 +106,7 @@ class Drawer{
     fill(0);
     strokeWeight(2); 
     for (int i = 1; i < floaters.size(); i++) {
-      line(floaters.get(i-1).x+floaters.get(i-1).s/2, floaters.get(i-1).y+floaters.get(i-1).s/2, floaters.get(i).x+floaters.get(i).s/2, floaters.get(i).y+floaters.get(i).s/2);
+      line(floaters.get(i-1).x, floaters.get(i-1).y, floaters.get(i).x, floaters.get(i).y);
     }
   }
   
@@ -125,7 +133,7 @@ class Drawer{
     if (f.frameCounteri >= 3) f.frameCounteri = 0;
    }
    
-   //do direct the bird in a fkying direction
+   //to direct the bird in a flying direction
    float DirectionAngle(Floater f){
      //find out the cos between the head vector of a bird and its velocity vector
      float cos = (float)((f.head.x*f.vx + f.vy*f.head.y) / (Math.sqrt((f.vx*f.vx + f.vy*f.vy)) * Math.sqrt((f.head.x*f.head.x + f.head.y*f.head.y))));
@@ -156,11 +164,11 @@ class Drawer{
       FrameType(f);
       
       pushMatrix();
-      translate(f.x + f.s/2, f.y + f.s/2);
+      translate(f.x, f.y);
       strokeWeight(2); 
       fill(255);
       ellipseMode(CENTER); 
-      ellipse(0, 0, f.s/2, f.s/2);
+      ellipse(0, 0, f.s, f.s);
       //
       //line(-f.head.x*20, -f.head.y*20, f.head.x*20, f.head.y*20);
       //ellipseMode(CENTER); 

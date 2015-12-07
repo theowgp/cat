@@ -152,7 +152,7 @@ class Drawer{
    
    
    
-   void Drawboid(Floaterk f) {
+   void Drawboid(Floater f) {
       FrameType(f);
       
       pushMatrix();

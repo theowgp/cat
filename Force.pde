@@ -12,11 +12,11 @@ class Force {
   
   
   //independent movement's laws
-  float r_repulsion=30;//repulsion range
-  float f_repulsion=4;//repulsion force
-  float r_still=50;//allignment range
-  float r_attraction= 250;//attraction range
-  float f_attraction=2;//attraction force
+  float r_repulsion;//repulsion range
+  float f_repulsion;//repulsion force
+  float r_still;//still range
+  float r_attraction;//attraction range
+  float f_attraction;//attraction force
   //public float bird_sigh1=250 ;
   
   // constraining the range(and velocitfloaters[j].y range) at which birds can move at a time

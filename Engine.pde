@@ -59,7 +59,7 @@ class Engine {
   
   
   
-  
+  // boolean justfortest=true;
   void IterateFrame(){
     DetermineVelocities();
     
@@ -68,24 +68,33 @@ class Engine {
     }
     
     for (int i = 0; i < birds.size(); i++) {
-      //Move(floaters.get(i));
       Move(birds.get(i));
     }
+
     
-    for (Floater f : floaters) {
-      ArrayList<Floater[]> dashedlines = DashedLines(f);
-      for(Floater[] dl : dashedlines){
-        //println("in the loop");
-        if(!ThrowOut(f, dl[0], dl[1])){
-          PlugIn(f, dl[0], dl[1]);
-          println("Go in PlugIn");
-        }
-      }
-            
-    }
-    
-    
+    //ThrowOut();
+    PlugIn();
+    for(Floater f:floaters){print("x=",(int)f.x," y=", (int)f.y, " | ");}
+    println();
+
+    // if(justfortest){
+    //   ArrayList<Floater> ints = new ArrayList<Floater>();
+    // ints.add(new Floater(10, 1));
+    // ints.add(new Floater(10, 3));
+    // ints.add(1, new Floater(10, 2));
+    //   ints.remove(0);
+    //   ints.add(0, ints.get(1));
+    //   for(Floater f:ints){print(f.s, " ");}
+    //   println();
+    //   ints.get(0).s -= 3;
+    //   for(Floater f:ints){print(f.s, " ");}
+    //   justfortest = false;
+
+    // }
   }
+
+
+
   
   
   
@@ -114,64 +123,65 @@ class Engine {
   
   void DetermineVelocities(){
     flocking.Apply();//for birds    
-    elasticity.Apply();//for floaters
+    //elasticity.Apply();//for floaters
   }
   
  
  
- ArrayList<Floater[]> DashedLines(Floater f){
-   ArrayList<Floater[]> dashedlines = new ArrayList<Floater[]>(); 
-    
-   for (int i = 1; i < floaters.size(); i++) {
-     if(f != floaters.get(i-1) && f != floaters.get(i)){
-       if( IsInDashedAreaOf(f, floaters.get(i-1), floaters.get(i)) ){
-         dashedlines.add( new Floater[]{floaters.get(i-1), floaters.get(i)} );
-         //Floater[] dl = new Floater[2];
-         //dl[0]=floaters.get(i-1);
-         //dl[1]=floaters.get(i);
-         //dashedlines.add(dl);
-         //println("Is in DA");
+
+ void ThrowOut(){
+   for (int i = 1; i < floaters.size()-1; i++) {
+     if( IsInDashedAreaOf(floaters.get(i), floaters.get(i-1), floaters.get(i+1)) ){
+       floaters.remove(i);
+     }
+   }
+ }
+ 
+   
+
+ //int k=0;
+ void PlugIn(){
+  ArrayList<Floater> tempfs = new ArrayList<Floater>();
+  ArrayList<Integer> pos = new ArrayList<Integer>();
+
+   for (int i = 0; i < floaters.size(); i++) {
+     for (int j = 1; j < floaters.size(); j++) {
+       if( Math.abs(i - j) > 1   &&   IsInDashedAreaOf(floaters.get(i), floaters.get(j-1), floaters.get(j)) ){//&& k<300){
+         //floaters.add(floaters.get(i));return;
+         tempfs.add(floaters.get(i));
+         //tempfs.add(new Floater(floaters.get(i)));
+         // floaters.add(new Floater(flocking.floater_vr, s, mouseX-s/2, mouseY-s/2));
+         // println("addddddddd");
+         pos.add(j);
+         //k++;
+
        }
      }
    }
-   return dashedlines;
+
+   for(int i=0; i<pos.size();i++){
+     floaters.add(pos.get(i), tempfs.get(i));     
+     //floaters.add(tempfs.get(i));     
+     //floaters.add(new Floater(flocking.floater_vr, s, mouseX-s/2, mouseY-s/2));
+     println("addddddddd");
+   } 
  }
- 
- 
- 
  
 
- boolean ThrowOut(Floater f, Floater f1, Floater f2){
-  boolean res = false; //<>//
-  for (int i = 1; i < floaters.size()-1; i++) {
-    if(f == floaters.get(i)){
-      if(floaters.get(i-1) == f1 && floaters.get(i+1) == f2){
-        floaters.remove(i);
-        floaters.trimToSize();
-        res = true;
-        println("Out");
-      }
-    }
-  }
-  return res;
- }
- 
- void PlugIn(Floater f, Floater f1, Floater f2){
-  for (int i = 1; i < floaters.size(); i++) {//can be optimized if return is in the loop
-      if(floaters.get(i-1) == f1 && floaters.get(i) == f2){
-        floaters.add(i, f);
-        println("In");
-      }
-    }
- }
- 
+
+
+
+
+
+
 
  
  
  
  
 
-   boolean IsInDashedAreaOf(Floater f, Floater f1, Floater f2){
+ boolean IsInDashedAreaOf(Floater f, Floater f1, Floater f2){
+      float eps=f.s/12;
       float xx = f.x;
       float yy = f.y;
       
@@ -200,25 +210,25 @@ class Engine {
       yy = ( yy/sinphi)*(float)Math.sin((acos(cosphi)-acos(cos)));
       
       
-      translate(f1.s/2, -f1.s/2);
+      translate(f1.s/2, -eps);
       xx-=f1.s/2;
-      yy-=-f1.s/2;
+      yy-=-eps;
       //
       //strokeWeight(2); 
       //fill(255);
-      //rect(0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s, f1.s);
+      //rect(0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s, 2*eps);
       //ellipseMode(CENTER);
       //ellipse(xx, yy, 10, 10);
       //
       //println(IsInRectangle(xx, yy, 0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s/2, f1.s));
-      boolean res = IsInRectangle(xx, yy, 0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s/2, f1.s);
+      boolean res = IsInRectangle(xx, yy, 0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s/2, 2*eps);
       
       popMatrix();
       return res;
-   }
+  }
    
    
-  boolean IsInRectangle(float x, float y, float rx, float ry, float rl, float rw){
+ boolean IsInRectangle(float x, float y, float rx, float ry, float rl, float rw){
     if(x > rx && x < rx+rl && y > ry && y < ry + rw){
       return true;
     }
@@ -226,9 +236,25 @@ class Engine {
   }
   
   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   
-  //spawn a floater
-  void mouseClicked()  {
+ //spawn a floater
+ void mouseClicked()  {
     if(mouseButton == RIGHT){
       floaters.add(new Floater(flocking.floater_vr, s, mouseX-s/2, mouseY-s/2));
     }

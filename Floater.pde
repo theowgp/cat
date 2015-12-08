@@ -42,6 +42,17 @@ class Floater {
     this.s=s;
   }
   
+  Floater(Floater f) {
+    //initialize random positions and random velocities
+    this.x = f.x;
+    this.y = f.y;
+    this.vx = f.vx;
+    this.vy = f.vy;
+    this.s = f.s;
+    
+    frameCounteri = (int)random(3.999);
+    frameCounter = 0;
+  }
   
 }  
   

@@ -38,7 +38,7 @@ void setup() {
                     15,         //size of a floater 
                     elasticity, //slastic force 
                     flocking,   //flocking force
-                    1           //friction coefficient
+                    0.4           //friction coefficient
                     );  
   
   //set Drawer
@@ -78,8 +78,8 @@ void draw() {
   //for (int i = 1; i < eng.floaters.size(); i++) {
   //  float xx = eng.floaters.get(i-1).x + (eng.floaters.get(i).x - eng.floaters.get(i-1).x)/2 -eng.floaters.get(i-1).s*2;
   //  float yy = eng.floaters.get(i-1).y + (eng.floaters.get(i).y - eng.floaters.get(i-1).y)/2 +eng.floaters.get(i-1).s/3;
-  //  //ellipse(xx, yy, 10, 10);
-  //  eng.IsInDashedAreaOf( xx, yy,   eng.floaters.get(i-1),    eng.floaters.get(i) );
+  //  ellipse(xx, yy, 10, 10);
+  //  eng.IsInDashedAreaOf( eng.floaters.get(i-1),   eng.floaters.get(i-1),    eng.floaters.get(i) );
   //}
 }
 

@@ -27,6 +27,7 @@ Drawer drawer;
 
 
 
+
   
 
 
@@ -52,17 +53,18 @@ public void setup() {
   
   
   //set Engin
-  eng = new Engine( 1,          //number of floaters
-                    30,         //size of a floater 
+  eng = new Engine( 3,          //number of floaters
+                    15,         //size of a floater 
                     elasticity, //slastic force 
                     flocking,   //flocking force
-                    1           //friction coefficient
+                    0.4f           //friction coefficient
                     );  
   
   //set Drawer
-  drawer = new Drawer( eng.floaters,                  
+  drawer = new Drawer(null,//eng.floaters,                  
                        2,           //flapping rate    
-                       false,        //the frame is open       
+                       false,        //the frame is open  
+                       true,         //connect floaters
                        this         //for Minim
                        );
   
@@ -80,8 +82,24 @@ public void setup() {
 public void draw() {
   background(drawer.bg);
   
-  eng.IterateFrame(); 
+  eng.IterateFrame();
+  //draw floaters
+  drawer.SetFloaters(eng.floaters);
+  drawer.SetConnect_floaters(true);
   drawer.draw();
+  //draw birds
+  //drawer.SetConnect_floaters(false);
+  //drawer.SetFloaters(eng.birds);
+  //drawer.draw();
+  
+  
+  //to test the IsInDashAreaOf() function
+  //for (int i = 1; i < eng.floaters.size(); i++) {
+  //  float xx = eng.floaters.get(i-1).x + (eng.floaters.get(i).x - eng.floaters.get(i-1).x)/2 -eng.floaters.get(i-1).s*2;
+  //  float yy = eng.floaters.get(i-1).y + (eng.floaters.get(i).y - eng.floaters.get(i-1).y)/2 +eng.floaters.get(i-1).s/3;
+  //  ellipse(xx, yy, 10, 10);
+  //  eng.IsInDashedAreaOf( eng.floaters.get(i-1),   eng.floaters.get(i-1),    eng.floaters.get(i) );
+  //}
 }
 
 
@@ -121,6 +139,9 @@ class Drawer{
   
   //array of floaters
   ArrayList<Floater> floaters = new ArrayList<Floater>();
+  public void SetFloaters(ArrayList<Floater> floaters){
+    this.floaters=floaters;
+  }
   
   int flappingRate;
   
@@ -137,6 +158,10 @@ class Drawer{
   //if true frame of the the window is open and looped
   boolean open_frame;
   
+  boolean connect_floaters;
+  public void SetConnect_floaters(boolean connect_floaters){
+    this.connect_floaters = connect_floaters;
+  }
 
 
   
@@ -145,10 +170,11 @@ class Drawer{
   
   
   
-  Drawer(ArrayList<Floater> floaters, int flappingRate, boolean open_frame, java.lang.Object object){
+  Drawer(ArrayList<Floater> floaters, int flappingRate, boolean open_frame, boolean connect_floaters, java.lang.Object object){
     this.floaters = floaters;
     this.flappingRate = flappingRate;
     this.open_frame=open_frame;
+    this.connect_floaters=connect_floaters;
     
     LoadImages();
     LoadSound(object);
@@ -179,7 +205,7 @@ class Drawer{
  
   
   public void draw() {
-    ConnectFloaters();
+    if(connect_floaters) ConnectFloaters();
     
     //draw each floater
     for (int i = 0; i < floaters.size(); i++) {
@@ -211,7 +237,7 @@ class Drawer{
     fill(0);
     strokeWeight(2); 
     for (int i = 1; i < floaters.size(); i++) {
-      line(floaters.get(i-1).x+floaters.get(i-1).s/2, floaters.get(i-1).y+floaters.get(i-1).s/2, floaters.get(i).x+floaters.get(i).s/2, floaters.get(i).y+floaters.get(i).s/2);
+      line(floaters.get(i-1).x, floaters.get(i-1).y, floaters.get(i).x, floaters.get(i).y);
     }
   }
   
@@ -238,7 +264,7 @@ class Drawer{
     if (f.frameCounteri >= 3) f.frameCounteri = 0;
    }
    
-   //do direct the bird in a fkying direction
+   //to direct the bird in a flying direction
    public float DirectionAngle(Floater f){
      //find out the cos between the head vector of a bird and its velocity vector
      float cos = (float)((f.head.x*f.vx + f.vy*f.head.y) / (Math.sqrt((f.vx*f.vx + f.vy*f.vy)) * Math.sqrt((f.head.x*f.head.x + f.head.y*f.head.y))));
@@ -269,11 +295,11 @@ class Drawer{
       FrameType(f);
       
       pushMatrix();
-      translate(f.x + f.s/2, f.y + f.s/2);
+      translate(f.x, f.y);
       strokeWeight(2); 
       fill(255);
       ellipseMode(CENTER); 
-      ellipse(0, 0, f.s/2, f.s/2);
+      ellipse(0, 0, f.s, f.s);
       //
       //line(-f.head.x*20, -f.head.y*20, f.head.x*20, f.head.y*20);
       //ellipseMode(CENTER); 
@@ -324,9 +350,14 @@ class Engine {
   
   
     
+  
+  //array of floaters
+  ArrayList<Floater> birds = new ArrayList<Floater>();
+  //size of a bird
+    
   //array of floaters
   ArrayList<Floater> floaters = new ArrayList<Floater>();
-  //size of a bird
+  //size of a foater
   float s;
   //minimal allowed distance between birds
   float eps=4;
@@ -356,24 +387,59 @@ class Engine {
     
     
     
-    //creating floaters
+    //create initial floater
+    floaters.add(new Floater(flocking.floater_vr, s));
+    
+    //creating birds
     for (int i = 0; i < n; i++) {
-      floaters.add(new Floater(flocking.floater_vr, s));
+      birds.add(new Floater(flocking.floater_vr, s));
     }
-    //Pass the floaters to the Forces
+    
+    
     elasticity.SetFloaters(floaters);
-    flocking.SetFloaters(floaters);
+    
+    
+    flocking.SetFloaters(birds);
  }
   
   
   
-  
+  // boolean justfortest=true;
   public void IterateFrame(){
     DetermineVelocities();
+    
     for (int i = 0; i < floaters.size(); i++) {
       Move(floaters.get(i));
     }
+    
+    for (int i = 0; i < birds.size(); i++) {
+      Move(birds.get(i));
+    }
+
+    
+    //ThrowOut();
+    PlugIn();
+    for(Floater f:floaters){print("x=",(int)f.x," y=", (int)f.y, " | ");}
+    println();
+
+    // if(justfortest){
+    //   ArrayList<Floater> ints = new ArrayList<Floater>();
+    // ints.add(new Floater(10, 1));
+    // ints.add(new Floater(10, 3));
+    // ints.add(1, new Floater(10, 2));
+    //   ints.remove(0);
+    //   ints.add(0, ints.get(1));
+    //   for(Floater f:ints){print(f.s, " ");}
+    //   println();
+    //   ints.get(0).s -= 3;
+    //   for(Floater f:ints){print(f.s, " ");}
+    //   justfortest = false;
+
+    // }
   }
+
+
+
   
   
   
@@ -401,23 +467,139 @@ class Engine {
   
   
   public void DetermineVelocities(){
-    //flocking.Apply();    
-    elasticity.Apply();
+    flocking.Apply();//for birds    
+    //elasticity.Apply();//for floaters
   }
   
  
+ 
+
+ public void ThrowOut(){
+   for (int i = 1; i < floaters.size()-1; i++) {
+     if( IsInDashedAreaOf(floaters.get(i), floaters.get(i-1), floaters.get(i+1)) ){
+       floaters.remove(i);
+     }
+   }
+ }
+ 
+   
+
+ //int k=0;
+ public void PlugIn(){
+  ArrayList<Floater> tempfs = new ArrayList<Floater>();
+  ArrayList<Integer> pos = new ArrayList<Integer>();
+
+   for (int i = 0; i < floaters.size(); i++) {
+     for (int j = 1; j < floaters.size(); j++) {
+       if( Math.abs(i - j) > 1   &&   IsInDashedAreaOf(floaters.get(i), floaters.get(j-1), floaters.get(j)) ){//&& k<300){
+         //floaters.add(floaters.get(i));return;
+         tempfs.add(floaters.get(i));
+         //tempfs.add(new Floater(floaters.get(i)));
+         // floaters.add(new Floater(flocking.floater_vr, s, mouseX-s/2, mouseY-s/2));
+         // println("addddddddd");
+         pos.add(j);
+         //k++;
+
+       }
+     }
+   }
+
+   for(int i=0; i<pos.size();i++){
+     floaters.add(pos.get(i), tempfs.get(i));     
+     //floaters.add(tempfs.get(i));     
+     //floaters.add(new Floater(flocking.floater_vr, s, mouseX-s/2, mouseY-s/2));
+     println("addddddddd");
+   } 
+ }
+ 
+
+
+
+
+
+
+
 
  
  
  
-  
  
+
+ public boolean IsInDashedAreaOf(Floater f, Floater f1, Floater f2){
+      float eps=f.s/12;
+      float xx = f.x;
+      float yy = f.y;
+      
+      float x = f2.x - f1.x;
+      float y = f2.y - f1.y;
+      float angle;
+      float cos = (float)( x / Math.sqrt(x*x + y*y) );
+         
+      //println("y=",y, " acs=", acos(cos));
+      if(y >= 0) angle= acos(cos);
+      else angle = -acos(cos);
+      
+      pushMatrix();
+      
+      translate(f1.x, f1.y);
+      xx-=f1.x;
+      yy-=f1.y;
+      
+      
+      rotate(angle);
+      //xx = (float)( xx*Math.cos(angle) - yy*Math.sin(angle) );
+      //yy = (float)( xx*Math.sin(angle) + yy*Math.cos(angle) );
+      float cosphi=(float)(xx/Math.sqrt(xx*xx + yy*yy));
+      float sinphi=(float)(yy/Math.sqrt(xx*xx + yy*yy));
+      xx = ( xx/cosphi)*(float)Math.cos((acos(cosphi)-acos(cos)));
+      yy = ( yy/sinphi)*(float)Math.sin((acos(cosphi)-acos(cos)));
+      
+      
+      translate(f1.s/2, -eps);
+      xx-=f1.s/2;
+      yy-=-eps;
+      //
+      //strokeWeight(2); 
+      //fill(255);
+      //rect(0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s, 2*eps);
+      //ellipseMode(CENTER);
+      //ellipse(xx, yy, 10, 10);
+      //
+      //println(IsInRectangle(xx, yy, 0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s/2, f1.s));
+      boolean res = IsInRectangle(xx, yy, 0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s/2, 2*eps);
+      
+      popMatrix();
+      return res;
+  }
+   
+   
+ public boolean IsInRectangle(float x, float y, float rx, float ry, float rl, float rw){
+    if(x > rx && x < rx+rl && y > ry && y < ry + rw){
+      return true;
+    }
+    return false;
+  }
   
   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   
-  
-  //spawn a floater
-  public void mouseClicked()  {
+ //spawn a floater
+ public void mouseClicked()  {
     if(mouseButton == RIGHT){
       floaters.add(new Floater(flocking.floater_vr, s, mouseX-s/2, mouseY-s/2));
     }
@@ -426,8 +608,8 @@ class Engine {
  //drag a seazed pbk-th floater 
  public void mouseDragged()  {
     if(pbk>=0){
-         floaters.get(pbk).x=mouseX-floaters.get(pbk).s/2;
-         floaters.get(pbk).y=mouseY-floaters.get(pbk).s/2;
+         floaters.get(pbk).x = mouseX;
+         floaters.get(pbk).y = mouseY;
          floaters.get(pbk).vx = 0;
          floaters.get(pbk).vy = 0;
     }
@@ -446,13 +628,17 @@ class Engine {
       //find out which boid is pressed, if it is pressed
       for (int i = 0; i < floaters.size(); i++) {
           //check if the pointer is in the square surrounding a boid
-          if(pmouseX > floaters.get(i).x && pmouseX < floaters.get(i).x+floaters.get(i).s && pmouseY > floaters.get(i).y && pmouseY < floaters.get(i).y + floaters.get(i).s){
+          //if(pmouseX > floaters.get(i).x && pmouseX < floaters.get(i).x+floaters.get(i).s && pmouseY > floaters.get(i).y && pmouseY < floaters.get(i).y + floaters.get(i).s){
+          //  pbk=i;
+          //}
+          if (IsInRectangle(mouseX, mouseY, floaters.get(i).x - floaters.get(i).s/2, floaters.get(i).y - floaters.get(i).s/2, floaters.get(i).s, floaters.get(i).s)){
             pbk=i;
           }
+          
       }
       if(pbk>=0){
-        floaters.get(pbk).x=mouseX-floaters.get(pbk).s/2;
-        floaters.get(pbk).y=mouseY-floaters.get(pbk).s/2;
+        floaters.get(pbk).x = mouseX;
+        floaters.get(pbk).y = mouseY;
         floaters.get(pbk).vx = 0;
         floaters.get(pbk).vy = 0;
         floaters.get(pbk).still = true; 
@@ -541,6 +727,17 @@ class Floater {
     this.s=s;
   }
   
+  Floater(Floater f) {
+    //initialize random positions and random velocities
+    this.x = f.x;
+    this.y = f.y;
+    this.vx = f.vx;
+    this.vy = f.vy;
+    this.s = f.s;
+    
+    frameCounteri = (int)random(3.999f);
+    frameCounter = 0;
+  }
   
 }  
   

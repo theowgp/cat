@@ -5,15 +5,20 @@ class Engine {
   
   
     
+  //array of agents: birds and floaters altogether
+  ArrayList<Floater> agents = new ArrayList<Floater>();
+  
   
   //array of floaters
   ArrayList<Floater> birds = new ArrayList<Floater>();
-  //size of a bird
+  
     
   //array of floaters
   ArrayList<Floater> floaters = new ArrayList<Floater>();
+  
   //size of a foater
   float s;
+  
   //minimal allowed distance between birds
   float eps=4;
   
@@ -25,6 +30,11 @@ class Engine {
   Flocking flocking;
   float friction;
   
+  //force of interaction between floaters and birds
+  Force force;
+  
+  
+  
  
  
   
@@ -33,7 +43,7 @@ class Engine {
   
   
   
-  Engine(int n, float s, Elasticity elst, Flocking flk, float frct){
+  Engine(int m, int n, float s, Elasticity elst, Flocking flk, float frct){
     this.s=s;
     this.friction=frct;
     
@@ -43,18 +53,38 @@ class Engine {
     
     
     //create initial floater
-    floaters.add(new Floater(flocking.floater_vr, s));
+    for (int i = 0; i < n; i++) {
+      floaters.add(new Floater(flocking.floater_vr, s));
+    }
     
     //creating birds
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < m; i++) {
       birds.add(new Floater(flocking.floater_vr, s));
     }
     
+    //create agents
+    agents = new ArrayList<Floater>();
+    agents.addAll(birds);
+    agents.addAll(floaters);
+    
     
     elasticity.SetFloaters(floaters);
-    
-    
+    elasticity.CreateMatrix();
+        
     flocking.SetFloaters(birds);
+    flocking.CreateMatrix();
+        
+    force = new Force(elasticity);
+    force.SetFloaters(agents);
+    force.CreateMatrix();
+    
+    
+    //for (int i = 0; i < floaters.size(); i++) {
+    //  for (int j = 0; j < floaters.size(); j++) {
+    //    print(elasticity.matrix[i][j], "  ");
+    //  }
+    //  println();
+    //}
  }
   
   
@@ -72,10 +102,12 @@ class Engine {
     }
 
     
+    
+    
     //ThrowOut();
-    PlugIn();
-    for(Floater f:floaters){print("x=",(int)f.x," y=", (int)f.y, " | ");}
-    println();
+    //PlugIn();
+    //for(Floater f:floaters){print("x=",(int)f.x," y=", (int)f.y, " | ");}
+    //println();
 
     // if(justfortest){
     //   ArrayList<Floater> ints = new ArrayList<Floater>();
@@ -95,7 +127,17 @@ class Engine {
 
 
 
-  
+  int[][] GetConnectionMatrix(){
+    int[][] mtrx = new int[agents.size()][agents.size()];
+    
+    for (int i = 0; i < agents.size(); i++) {
+      for (int j = 0; j < agents.size(); j++) {
+        if(birds.size()<=i && birds.size()<=j && Math.abs(i-j)==1) mtrx[i][j] = 1;
+        else mtrx[i][j] = force.matrix[i][j];
+      }
+    }
+    return mtrx;
+  }
   
   
   
@@ -122,64 +164,44 @@ class Engine {
   
   
   void DetermineVelocities(){
-    flocking.Apply();//for birds    
+    for (int i = 0; i < agents.size(); i++) {
+      TriggerInteraction(force, agents.get(i), i);
+    }
+    
+    
+    ///flocking.Apply(); //for birds    
     //elasticity.Apply();//for floaters
+    force.Apply();
   }
   
  
  
 
- void ThrowOut(){
-   for (int i = 1; i < floaters.size()-1; i++) {
-     if( IsInDashedAreaOf(floaters.get(i), floaters.get(i-1), floaters.get(i+1)) ){
-       floaters.remove(i);
-     }
-   }
- }
- 
-   
-
- //int k=0;
- void PlugIn(){
-  ArrayList<Floater> tempfs = new ArrayList<Floater>();
-  ArrayList<Integer> pos = new ArrayList<Integer>();
-
-   for (int i = 0; i < floaters.size(); i++) {
-     for (int j = 1; j < floaters.size(); j++) {
-       if( Math.abs(i - j) > 1   &&   IsInDashedAreaOf(floaters.get(i), floaters.get(j-1), floaters.get(j)) ){//&& k<300){
-         //floaters.add(floaters.get(i));return;
-         tempfs.add(floaters.get(i));
-         //tempfs.add(new Floater(floaters.get(i)));
-         // floaters.add(new Floater(flocking.floater_vr, s, mouseX-s/2, mouseY-s/2));
-         // println("addddddddd");
-         pos.add(j);
-         //k++;
-
+ void TriggerInteraction(Force force, Floater f ,int k){
+   for (int i = 1; i < floaters.size(); i++) {
+     if( i!=k && i!=k+1  && IsInDashedAreaOf(f, floaters.get(i-1), floaters.get(i)) ){
+       if (force.matrix[k][birds.size()+i-1] == 1){
+         force.matrix[k][birds.size()+i-1] = 0;
+         force.matrix[birds.size()+i][birds.size()+i-1] = 1;
        }
+       else{
+         force.matrix[k][birds.size()+i-1] = 1;
+         force.matrix[birds.size()+i][birds.size()+i-1] = 0;
+       }
+       
+       if (force.matrix[birds.size()+i-1][k] == 1){
+         force.matrix[birds.size()+i-1][k] = 0;
+         force.matrix[birds.size()+i-1][birds.size()+i] = 1;
+       }
+       else{
+         force.matrix[birds.size()+i-1][k] = 1;
+         force.matrix[birds.size()+i-1][birds.size()+i] = 0;
+       }
+       
      }
    }
-
-   for(int i=0; i<pos.size();i++){
-     floaters.add(pos.get(i), tempfs.get(i));     
-     //floaters.add(tempfs.get(i));     
-     //floaters.add(new Floater(flocking.floater_vr, s, mouseX-s/2, mouseY-s/2));
-     println("addddddddd");
-   } 
  }
  
-
-
-
-
-
-
-
-
- 
- 
- 
- 
-
  boolean IsInDashedAreaOf(Floater f, Floater f1, Floater f2){
       float eps=f.s/12;
       float xx = f.x;

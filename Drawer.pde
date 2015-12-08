@@ -12,6 +12,12 @@ class Drawer{
     this.floaters=floaters;
   }
   
+  int[][] matrix;
+  void SetMatrix(int[][] matrix){
+    this.matrix=matrix;
+  }
+  
+  
   int flappingRate;
   
   //background image
@@ -27,10 +33,7 @@ class Drawer{
   //if true frame of the the window is open and looped
   boolean open_frame;
   
-  boolean connect_floaters;
-  void SetConnect_floaters(boolean connect_floaters){
-    this.connect_floaters = connect_floaters;
-  }
+  
 
 
   
@@ -43,7 +46,7 @@ class Drawer{
     this.floaters = floaters;
     this.flappingRate = flappingRate;
     this.open_frame=open_frame;
-    this.connect_floaters=connect_floaters;
+    
     
     LoadImages();
     LoadSound(object);
@@ -74,7 +77,7 @@ class Drawer{
  
   
   void draw() {
-    if(connect_floaters) ConnectFloaters();
+    ConnectFloaters();
     
     //draw each floater
     for (int i = 0; i < floaters.size(); i++) {
@@ -105,8 +108,10 @@ class Drawer{
   void ConnectFloaters(){
     fill(0);
     strokeWeight(2); 
-    for (int i = 1; i < floaters.size(); i++) {
-      line(floaters.get(i-1).x, floaters.get(i-1).y, floaters.get(i).x, floaters.get(i).y);
+    for (int i = 0; i < floaters.size()-1; i++) {
+      for (int j = i+1; j < floaters.size(); j++) {
+        if(matrix[i][j] == 1)  line(floaters.get(i).x, floaters.get(i).y, floaters.get(j).x, floaters.get(j).y);
+      }
     }
   }
   

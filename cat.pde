@@ -15,13 +15,13 @@ Drawer drawer;
 
 void setup() {
   size(640, 480);
-  //set main forces  
+  //set main forces 
   Flocking     flocking = new Flocking(      30, //repulsion range
                                              4,  //repulsion force    
                                              50, //allignment range     
                                              250,//attraction range       
                                              2,  //attraction force     
-                                             10 //constraining velocity      
+                                             10 //constraining velocity
                                              );
   
   Elasticity elasticity = new Elasticity(    30-3,//repulsion range
@@ -29,12 +29,13 @@ void setup() {
                                              30+3,//still range        
                                              (float)Math.sqrt(width*width+height*height),  //attraction range    
                                              10,  //elastic force       
-                                             10  //constraining velocity      
+                                             10  //constraining velocity
                                              );
   
   
   //set Engin
-  eng = new Engine( 3,          //number of floaters
+  eng = new Engine( 0,          //number of created birds
+                    3,          //number of floaters
                     15,         //size of a floater 
                     elasticity, //slastic force 
                     flocking,   //flocking force
@@ -64,15 +65,13 @@ void draw() {
   background(drawer.bg);
   
   eng.IterateFrame();
-  //draw floaters
-  drawer.SetFloaters(eng.floaters);
-  drawer.SetConnect_floaters(true);
-  drawer.draw();
-  //draw birds
-  //drawer.SetConnect_floaters(false);
-  //drawer.SetFloaters(eng.birds);
-  //drawer.draw();
   
+  //draw floaters
+  drawer.SetFloaters(eng.agents);
+  drawer.SetMatrix(eng.GetConnectionMatrix());  
+  drawer.draw();
+  
+
   
   //to test the IsInDashAreaOf() function
   //for (int i = 1; i < eng.floaters.size(); i++) {

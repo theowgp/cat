@@ -25,6 +25,8 @@ class Engine {
   Flocking flocking;
   float friction;
   
+  float sensitivity =0.4;
+  
  
  
   
@@ -72,18 +74,12 @@ class Engine {
       Move(birds.get(i));
     }
     
-    for (Floater f : floaters) {
-      ArrayList<Floater[]> dashedlines = DashedLines(f);
-      for(Floater[] dl : dashedlines){
-        //println("in the loop");
-        if(!ThrowOut(f, dl[0], dl[1])){
-          PlugIn(f, dl[0], dl[1]);
-          println("Go in PlugIn");
-        }
-      }
-            
+    for (int i = 0; i < floaters.size(); i++) {
+      //if(!ThrowOut(i))PlugIn(i);
+      //ThrowOut(i);
+      PlugIn(i);
     }
-    
+      
     
   }
   
@@ -92,10 +88,10 @@ class Engine {
   
   
   void Move(Floater f) {
-    if(Allow(f)){
+    //if(Allow(f)){
       f.x += f.vx * friction;
       f.y += f.vy * friction;
-    }
+    //}
   }
   
   //does not allow floaters to move to close
@@ -114,55 +110,40 @@ class Engine {
   
   void DetermineVelocities(){
     flocking.Apply();//for birds    
-    elasticity.Apply();//for floaters
+    //elasticity.Apply();//for floaters
   }
   
  
- 
- ArrayList<Floater[]> DashedLines(Floater f){
-   ArrayList<Floater[]> dashedlines = new ArrayList<Floater[]>(); 
-    
-   for (int i = 1; i < floaters.size(); i++) {
-     if(f != floaters.get(i-1) && f != floaters.get(i)){
-       if( IsInDashedAreaOf(f, floaters.get(i-1), floaters.get(i)) ){
-         dashedlines.add( new Floater[]{floaters.get(i-1), floaters.get(i)} );
-         //Floater[] dl = new Floater[2];
-         //dl[0]=floaters.get(i-1);
-         //dl[1]=floaters.get(i);
-         //dashedlines.add(dl);
-         //println("Is in DA");
-       }
-     }
-   }
-   return dashedlines;
- }
- 
+
  
  
  
 
- boolean ThrowOut(Floater f, Floater f1, Floater f2){
-  boolean res = false; //<>//
-  for (int i = 1; i < floaters.size()-1; i++) {
-    if(f == floaters.get(i)){
-      if(floaters.get(i-1) == f1 && floaters.get(i+1) == f2){
-        floaters.remove(i);
-        floaters.trimToSize();
+ boolean PlugIn(int k){
+  boolean res = false; 
+  for (int i = 1; i < floaters.size(); i++) {
+     if(k != i && k != i-1 && IsOnTheLineBetween(floaters.get(k), floaters.get(i-1), floaters.get(i)) ){
+        floaters.add(i, new Floater(floaters.get(k)));
         res = true;
-        println("Out");
-      }
-    }
+     }
   }
   return res;
  }
  
- void PlugIn(Floater f, Floater f1, Floater f2){
-  for (int i = 1; i < floaters.size(); i++) {//can be optimized if return is in the loop
-      if(floaters.get(i-1) == f1 && floaters.get(i) == f2){
-        floaters.add(i, f);
-        println("In");
+ boolean ThrowOut(int k){
+  boolean res = false; 
+  for (int i = 1; i < floaters.size()-1; i++) {
+      if(floaters.get(k) == floaters.get(i)){
+        if( k != i-1 && k != i+1 &&  IsOnTheLineBetween(floaters.get(k), floaters.get(i-1), floaters.get(i+1)) ){
+          floaters.remove(k);
+          floaters.trimToSize();
+          res = true;
+          println("Out");
+          
+        }
       }
-    }
+    } 
+   return res;
  }
  
 
@@ -171,51 +152,31 @@ class Engine {
  
  
 
-   boolean IsInDashedAreaOf(Floater f, Floater f1, Floater f2){
-      float xx = f.x;
-      float yy = f.y;
-      
-      float x = f2.x - f1.x;
-      float y = f2.y - f1.y;
-      float angle;
-      float cos = (float)( x / Math.sqrt(x*x + y*y) );
-         
-      //println("y=",y, " acs=", acos(cos));
-      if(y >= 0) angle= acos(cos);
-      else angle = -acos(cos);
-      
-      pushMatrix();
-      
-      translate(f1.x, f1.y);
-      xx-=f1.x;
-      yy-=f1.y;
-      
-      
-      rotate(angle);
-      //xx = (float)( xx*Math.cos(angle) - yy*Math.sin(angle) );
-      //yy = (float)( xx*Math.sin(angle) + yy*Math.cos(angle) );
-      float cosphi=(float)(xx/Math.sqrt(xx*xx + yy*yy));
-      float sinphi=(float)(yy/Math.sqrt(xx*xx + yy*yy));
-      xx = ( xx/cosphi)*(float)Math.cos((acos(cosphi)-acos(cos)));
-      yy = ( yy/sinphi)*(float)Math.sin((acos(cosphi)-acos(cos)));
-      
-      
-      translate(f1.s/2, -f1.s/2);
-      xx-=f1.s/2;
-      yy-=-f1.s/2;
-      //
-      //strokeWeight(2); 
-      //fill(255);
-      //rect(0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s, f1.s);
-      //ellipseMode(CENTER);
-      //ellipse(xx, yy, 10, 10);
-      //
-      //println(IsInRectangle(xx, yy, 0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s/2, f1.s));
-      boolean res = IsInRectangle(xx, yy, 0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s/2, f1.s);
-      
-      popMatrix();
-      return res;
-   }
+    boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
+    float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
+    float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
+    
+    float x1 = f1.x - ndx*f1.s  - f.x;
+    float x2 = f2.x + ndx*f2.s  - f.x;
+    float y1 = f1.y - ndy*f1.s  - f.y;
+    float y2 = f2.y + ndy*f2.s  - f.y;
+    
+    float s = ((f.s/2)* sensitivity)*((f.s/2)* sensitivity);
+    float a = x1*x1 - 2*x1*x2 + x2*x2 + y1*y1 - 2*y1*y2 + y2*y2;
+    float b = 2*x1*x2 - 2*x2*x2 + 2*y1*y2 - 2*y2*y2;
+    float c = x2*x2 + y2*y2 - s;
+    
+    float d = b*b - 4*a*c;
+    if (d<0) return false;
+    
+    float t1 = (float)( (-b - Math.sqrt(d)) / (2*a) );
+    float t2 = (float)( (-b + Math.sqrt(d)) / (2*a) );
+    
+    if(0<=t1 && t1<=1) return true;
+    if(0<=t2 && t2<=1) return true;
+    
+    return false;    
+  }
    
    
   boolean IsInRectangle(float x, float y, float rx, float ry, float rl, float rw){

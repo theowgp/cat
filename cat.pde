@@ -24,18 +24,18 @@ void setup() {
                                              10 //constraining velocity
                                              );
   
-  Elasticity elasticity = new Elasticity(    50-3,//repulsion range
-                                             3,  //elastic force      
-                                             50+3,//still range        
+  Elasticity elasticity = new Elasticity(    30-3,//repulsion range
+                                             4,  //elastic force      
+                                             30+3,//still range        
                                              (float)Math.sqrt(width*width+height*height),  //attraction range    
-                                             3,  //elastic force       
-                                             5  //constraining velocity
+                                             4,  //elastic force       
+                                             7  //constraining velocity
                                              );
   
   
   //set Engin
   eng = new Engine( 0,          //number of created birds
-                    4,          //number of floaters
+                    3,          //number of floaters
                     15,         //size of a floater 
                     elasticity, //slastic force 
                     flocking,   //flocking force
@@ -43,10 +43,10 @@ void setup() {
                     );  
   
   //set Drawer
-  drawer = new Drawer(null,//eng.floaters,                  
+  drawer = new Drawer( null,        //eng.floaters,                  
                        2,           //flapping rate    
-                       false,        //the frame is open  
-                       true,         //connect floaters
+                       false,       //the frame is open  
+                       true,        //connect floaters
                        this         //for Minim
                        );
   
@@ -65,6 +65,7 @@ void draw() {
   background(drawer.bg);
   
   eng.IterateFrame();
+  eng.IncrementFramCounters();
   
   //draw floaters
   drawer.SetFloaters(eng.agents);

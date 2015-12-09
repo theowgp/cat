@@ -33,6 +33,9 @@ class Engine {
   //force of interaction between floaters and birds
   Force force;
   
+  //used in IsOnTheLineBetween(f, f1, f2) 
+  //we search for intersection of line segment between floaters f1 and f2 and a circle of radius (f.s/2)* sensitivity
+  float sensitivity=0.4;
   
   
  
@@ -90,6 +93,11 @@ class Engine {
  }
   
   
+  void IncrementFramCounters(){
+    for (int i = 0; i < agents.size(); i++) {
+      floaters.get(i).IncrementFrameCounter();
+    }
+  }
   
   // boolean justfortest=true;
   void IterateFrame(){
@@ -105,13 +113,11 @@ class Engine {
     
     DetermineVelocities();
     
-    for (int i = 0; i < floaters.size(); i++) {
-      Move(floaters.get(i));
+    for (int i = 0; i < agents.size(); i++) {
+      Move(agents.get(i));
     }
     
-    for (int i = 0; i < birds.size(); i++) {
-      Move(birds.get(i));
-    }
+    
 
 
     
@@ -170,14 +176,14 @@ class Engine {
   }
   
   //does not allow floaters to move to close
-  boolean Allow(Floater f){
-   for (int i = 0; i < floaters.size(); i++) {
-     if((f != floaters.get(i))&&(dist(f.x+f.vx, f.y+f.vy, floaters.get(i).x, floaters.get(i).y) < f.s)){//eps)){
-       return false;                
-     }
-   }
-   return true;
-  }
+  //boolean Allow(Floater f){
+  // for (int i = 0; i < floaters.size(); i++) {
+  //   if((f != floaters.get(i))&&(dist(f.x+f.vx, f.y+f.vy, floaters.get(i).x, floaters.get(i).y) < f.s)){//eps)){
+  //     return false;                
+  //   }
+  // }
+  // return true;
+  //}
   
   void Collide(Floater f1, Floater f2){
     //float teta1 = atan(Math.abs(f1.vy/f1.vx));
@@ -188,9 +194,7 @@ class Engine {
     
     float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
     float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
-    
-    
-    
+   
     force.AddVelocity(f1, ndy*av, ndx*av); 
   } 
   
@@ -203,9 +207,13 @@ class Engine {
   
   void DetermineVelocities(){
     for (int i = 0; i < agents.size(); i++) {
-      //ThrowOut(i);
+      if(!PlugIn(i))ThrowOut(i);
       //PlugIn(i);
+      //ThrowOut(i);
     }
+    //for (int i = 0; i < agents.size(); i++) {
+    //  if(!ThrowOut(i))PlugIn(i);
+    //}
     // println("+++++++++++++++++++++++++++++++++");
     // PrintMatrix(GetConnectionMatrix());
     // RenewChainConnection();
@@ -231,15 +239,17 @@ class Engine {
  
  //go through all the edges of the representative graph and 
  //plug the floater if it is "positioned" on line segment between a pair of floaters representing an edge in the representative graph
- void PlugIn(int k){
+ boolean PlugIn(int k){
+   if (!agents.get(k).ChangeStateAllowed()) return false;
+   boolean res = false;
    //println("start PlugIn");
    //for ( Integer[] edge:GetEdges() ) {println("edge[",edge[0],", ", edge[1], "]"); }
    for ( Integer[] edge:GetEdges() ) {
      //println("floater ", k," is on edge[",edge[0],", ", edge[1],"]: ", ( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ));
      if( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ){
-       println("floater ", k," is on edge[",edge[0],", ", edge[1],"]: ", ( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ));
+       //println("floater ", k," is on edge[",edge[0],", ", edge[1],"]: ", ( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ));
        //remove edge [edge[0]] [edge[1]]
-       PrintMatrix(GetConnectionMatrix());
+       //PrintMatrix(GetConnectionMatrix());
        force.matrix [edge[0]] [edge[1]] = 0;
        force.matrix [edge[1]] [edge[0]] = 0;
        //add edge [edge[0]] [k] and [edge[1]] [k]
@@ -247,10 +257,13 @@ class Engine {
        force.matrix [k]       [edge[0]] = 1;
        force.matrix [edge[1]] [k]       = 1;
        force.matrix [k]       [edge[1]] = 1;
+       res = true;
+       agents.get(k).ResetFrameCounter();
        //println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadd");
-       PrintMatrix(GetConnectionMatrix());
+       //PrintMatrix(GetConnectionMatrix());
      }
    }
+   return res;
  }
 
  ArrayList<Integer[]> GetEdges(){
@@ -265,10 +278,13 @@ class Engine {
 
  //get all incident floaters to the given floater and 
  //check if it is "positioned" on the line segment between any two of its incident floaters 
- void ThrowOut(int k){
+ boolean ThrowOut(int k){
+   //println(agents.get(k).ChangeStateAllowed());
+   if (!agents.get(k).ChangeStateAllowed()) return false;
+   boolean res = false;
    ArrayList<Integer> incdc = GetIncidentFloaters(k);  
    for (int i = 0; i < incdc.size(); i++) {
-      for (int j = 0; j < incdc.size(); j++) {
+      for (int j = i+1; j < incdc.size(); j++) {
         if( IsOnTheLineBetween(agents.get(k), agents.get(incdc.get(i)), agents.get(incdc.get(j))) ){
           //floater k is no more incident to incdc[i] and floater ncdc[i] is no more incident to k
           force.matrix [k]            [incdc.get(i)] = 0;
@@ -278,10 +294,13 @@ class Engine {
           force.matrix [incdc.get(j)] [k]            = 0;
           //floater [incdc[i]] is incident to [incdc[j]] and floater [incdc[j]] is incident to [incdc[i]]
           force.matrix [incdc.get(i)] [incdc.get(j)] = 1;      
-          force.matrix [incdc.get(j)] [incdc.get(i)] = 1;      
+          force.matrix [incdc.get(j)] [incdc.get(i)] = 1;  
+          res = true;
+          agents.get(k).ResetFrameCounter();
        }
      }
    }
+   return res;
  }
 
  ArrayList<Integer> GetIncidentFloaters(int k){
@@ -296,34 +315,65 @@ class Engine {
  
 
 
+
+
+
   boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
-     float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
-     float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
+    float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
+    float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
     
-      float x1 = f1.x - ndx*f1.s;
-      float x2 = f2.x + ndx*f2.s;
-      float x3 = f.x;
-      float x4 = f.x + f.vx;
-      
-      float y1 = f1.y - ndx*f1.s;
-      float y2 = f2.y + ndx*f2.s;
-      float y3 = f.y;
-      float y4 = f.y + f.vy;
-      
-      float a1 = (y1-y2)/(x1-x2);
-      float a2 = (y3-y4)/(x3-x4);
-      float b1 = y1-a1*x1;
-      float b2 = y3-a2*x3;
-      
-      float xa = (b2 - b1) / (a1 - a2);
-      //float ya = a1 * xa + b1;
-      
-      
-        if ( (xa < max( min(x1,x2), min(x3,x4) )) || (xa > min( max(x1,x2), max(x3,x4) )) )
-          return false; // intersection is out of bound
-        else
-          return true;
+    float x1 = f1.x - ndx*f1.s  - f.x;
+    float x2 = f2.x + ndx*f2.s  - f.x;
+    float y1 = f1.y - ndy*f1.s  - f.y;
+    float y2 = f2.y + ndy*f2.s  - f.y;
+    
+    float s = ((f.s/2)* sensitivity)*((f.s/2)* sensitivity);
+    float a = x1*x1 - 2*x1*x2 + x2*x2 + y1*y1 - 2*y1*y2 + y2*y2;
+    float b = 2*x1*x2 - 2*x2*x2 + 2*y1*y2 - 2*y2*y2;
+    float c = x2*x2 + y2*y2 - s;
+    
+    float d = b*b - 4*a*c;
+    if (d<0) return false;
+    
+    float t1 = (float)( (-b - Math.sqrt(d)) / (2*a) );
+    float t2 = (float)( (-b + Math.sqrt(d)) / (2*a) );
+    
+    if(0<=t1 && t1<=1) return true;
+    if(0<=t2 && t2<=1) return true;
+    
+    return false;    
   }
+
+  //boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
+  //   if(f.vx == 0 && f.vy == 0) return false;  
+    
+  //   float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
+  //   float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
+    
+  //   float x1 = f1.x - ndx*f1.s;
+  //   float x2 = f2.x + ndx*f2.s;
+  //   float x3 = f.x;
+  //   float x4 = f.x + f.vx;
+      
+  //   float y1 = f1.y - ndy*f1.s;
+  //   float y2 = f2.y + ndy*f2.s;
+  //   float y3 = f.y;
+  //   float y4 = f.y + f.vy;
+      
+  //   float a1 = (y1-y2)/(x1-x2);
+  //   float a2 = (y3-y4)/(x3-x4);
+  //   float b1 = y1-a1*x1;
+  //   float b2 = y3-a2*x3;
+      
+  //   float xa = (b2 - b1) / (a1 - a2);
+  //   //float ya = a1 * xa + b1;
+      
+      
+  //     if ( (xa < max( min(x1,x2), min(x3,x4) )) || (xa > min( max(x1,x2), max(x3,x4) )) )
+  //       return false; // intersection is out of bound
+  //     else
+  //       return true;
+  //}
   
  //boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
  //     float eps=f.s/8;

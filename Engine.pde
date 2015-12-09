@@ -78,6 +78,7 @@ class Engine {
     force = new Force(elst);
     force.SetFloaters(agents);
     force.CreateMatrix();
+    //force.CreateMatrixZeros();
     
     
     //for (int i = 0; i < floaters.size(); i++) {
@@ -92,6 +93,16 @@ class Engine {
   
   // boolean justfortest=true;
   void IterateFrame(){
+    //collide
+    for (int i = 0; i < agents.size(); i++) {
+      for (int j = 0; j < agents.size(); j++) {
+        if( i!=j && dist(agents.get(i).x, agents.get(i).y, agents.get(j).x, agents.get(j).y) < (agents.get(i).s + agents.get(j).s)/2 ){//eps)){
+          Collide(agents.get(i), agents.get(j));
+        }
+      }
+    }
+    
+    
     DetermineVelocities();
     
     for (int i = 0; i < floaters.size(); i++) {
@@ -102,8 +113,7 @@ class Engine {
       Move(birds.get(i));
     }
 
-    
-    
+
     
     //ThrowOut();
     //PlugIn();
@@ -153,21 +163,39 @@ class Engine {
   
   
   void Move(Floater f) {
-    if(Allow(f)){
+    //if(Allow(f)){
       f.x += f.vx * friction;
       f.y += f.vy * friction;
-    }
+    //}
   }
   
   //does not allow floaters to move to close
   boolean Allow(Floater f){
    for (int i = 0; i < floaters.size(); i++) {
-     if((f != floaters.get(i))&&(dist(f.x+f.vx, f.y+f.vy, floaters.get(i).x, floaters.get(i).y) < eps)){
+     if((f != floaters.get(i))&&(dist(f.x+f.vx, f.y+f.vy, floaters.get(i).x, floaters.get(i).y) < f.s)){//eps)){
        return false;                
      }
    }
    return true;
   }
+  
+  void Collide(Floater f1, Floater f2){
+    //float teta1 = atan(Math.abs(f1.vy/f1.vx));
+    //float teta2 = atan(Math.abs(f2.vy/f2.vx));
+    float v1 = (float)Math.sqrt(f1.vx*f1.vx + f1.vy*f1.vy);
+    float v2 = (float)Math.sqrt(f2.vx*f2.vx + f2.vy*f2.vy);
+    float av = (v1+v2)/2;
+    
+    float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
+    float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
+    
+    
+    
+    force.AddVelocity(f1, ndy*av, ndx*av); 
+  } 
+  
+  
+  
   
   
   
@@ -176,7 +204,7 @@ class Engine {
   void DetermineVelocities(){
     for (int i = 0; i < agents.size(); i++) {
       //ThrowOut(i);
-      PlugIn(i);
+      //PlugIn(i);
     }
     // println("+++++++++++++++++++++++++++++++++");
     // PrintMatrix(GetConnectionMatrix());
@@ -191,12 +219,12 @@ class Engine {
     force.Apply();
   }
 
-  void RenewChainConnection(){
-    for (int i = birds.size()+1; i < agents.size(); i++) {
-      force.matrix[i-1][i]=1;
-      force.matrix[i][i-1]=1;
-    }
-  }
+  //void RenewChainConnection(){
+  //  for (int i = birds.size()+1; i < agents.size(); i++) {
+  //    force.matrix[i-1][i]=1;
+  //    force.matrix[i][i-1]=1;
+  //  }
+  //}
   
   
  
@@ -268,52 +296,81 @@ class Engine {
  
 
 
- boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
-      float eps=f.s/8;
-      float xx = f.x;
-      float yy = f.y;
+  boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
+     float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
+     float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
+    
+      float x1 = f1.x - ndx*f1.s;
+      float x2 = f2.x + ndx*f2.s;
+      float x3 = f.x;
+      float x4 = f.x + f.vx;
       
-      float x = f2.x - f1.x;
-      float y = f2.y - f1.y;
-      float angle;
-      float cos = (float)( x / Math.sqrt(x*x + y*y) );
-         
-      //println("y=",y, " acs=", acos(cos));
-      if(y >= 0) angle= acos(cos);
-      else angle = -acos(cos);
+      float y1 = f1.y - ndx*f1.s;
+      float y2 = f2.y + ndx*f2.s;
+      float y3 = f.y;
+      float y4 = f.y + f.vy;
       
-      pushMatrix();
+      float a1 = (y1-y2)/(x1-x2);
+      float a2 = (y3-y4)/(x3-x4);
+      float b1 = y1-a1*x1;
+      float b2 = y3-a2*x3;
       
-      translate(f1.x, f1.y);
-      xx-=f1.x;
-      yy-=f1.y;
-      
-      
-      rotate(angle);
-      xx = (float)( xx*Math.cos(angle) - yy*Math.sin(angle) );
-      yy = (float)( xx*Math.sin(angle) + yy*Math.cos(angle) );
-      float cosphi=(float)(xx/Math.sqrt(xx*xx + yy*yy));
-      float sinphi=(float)(yy/Math.sqrt(xx*xx + yy*yy));
-      xx = ( xx/cosphi)*(float)Math.cos((acos(cosphi)-acos(cos)));
-      yy = ( yy/sinphi)*(float)Math.sin((acos(cosphi)-acos(cos)));
+      float xa = (b2 - b1) / (a1 - a2);
+      //float ya = a1 * xa + b1;
       
       
-      translate(f1.s/2, -eps);
-      xx-=f1.s/2;
-      yy-=-eps;
-      //
-      strokeWeight(2); 
-      fill(255);
-      //rect(0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s, 2*eps);
-      ellipseMode(CENTER);
-      ellipse(xx, yy, 10, 10);
-      //
-      //println(IsInRectangle(xx, yy, 0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s/2, f1.s));
-      boolean res = IsInRectangle(xx, yy, 0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s/2, 2*eps);
-      
-      popMatrix();
-      return res;
+        if ( (xa < max( min(x1,x2), min(x3,x4) )) || (xa > min( max(x1,x2), max(x3,x4) )) )
+          return false; // intersection is out of bound
+        else
+          return true;
   }
+  
+ //boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
+ //     float eps=f.s/8;
+ //     float xx = f.x;
+ //     float yy = f.y;
+      
+ //     float x = f2.x - f1.x;
+ //     float y = f2.y - f1.y;
+ //     float angle;
+ //     float cos = (float)( x / Math.sqrt(x*x + y*y) );
+         
+ //     //println("y=",y, " acs=", acos(cos));
+ //     if(y >= 0) angle= acos(cos);
+ //     else angle = -acos(cos);
+      
+ //     pushMatrix();
+      
+ //     translate(f1.x, f1.y);
+ //     xx-=f1.x;
+ //     yy-=f1.y;
+      
+      
+ //     rotate(angle);
+ //     xx = (float)( xx*Math.cos(angle) - yy*Math.sin(angle) );
+ //     yy = (float)( xx*Math.sin(angle) + yy*Math.cos(angle) );
+ //     float cosphi=(float)(xx/Math.sqrt(xx*xx + yy*yy));
+ //     float sinphi=(float)(yy/Math.sqrt(xx*xx + yy*yy));
+ //     xx = ( xx/cosphi)*(float)Math.cos((acos(cosphi)-acos(cos)));
+ //     yy = ( yy/sinphi)*(float)Math.sin((acos(cosphi)-acos(cos)));
+      
+      
+ //     translate(f1.s/2, -eps);
+ //     xx-=f1.s/2;
+ //     yy-=-eps;
+ //     //
+ //     //strokeWeight(2); 
+ //     //fill(255);
+ //     //rect(0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s, 2*eps);
+ //     //ellipseMode(CENTER);
+ //     //ellipse(xx, yy, 10, 10);
+ //     //
+ //     //println(IsInRectangle(xx, yy, 0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s/2, f1.s));
+ //     boolean res = IsInRectangle(xx, yy, 0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s/2, 2*eps);
+      
+ //     popMatrix();
+ //     return res;
+ // }
 
 
 

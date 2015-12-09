@@ -26,8 +26,10 @@ class Floater {
     //initialize random positions and random velocities
     x = (int)random(100, width-100);
     y = (int)random(100, height-100);
-    vx =0 ;// random(-floater_vr, floater_vr);
-    vy = 0;//random(-floater_vr, floater_vr);
+    //vx = random(-floater_vr, floater_vr);
+    //vy =  random(-floater_vr, floater_vr);
+    vx = 0;
+    vy = 0;
     this.s = s;
     
     frameCounteri = (int)random(3.999);

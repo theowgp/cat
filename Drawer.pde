@@ -174,6 +174,10 @@ class Drawer{
       fill(255);
       ellipseMode(CENTER); 
       ellipse(0, 0, f.s, f.s);
+      //draw its velocity vector
+      line(0, 0, f.vx, f.vy);
+      ellipseMode(CENTER); 
+      ellipse(f.vx, f.vy, f.s/4, f.s/4);
       //
       //line(-f.head.x*20, -f.head.y*20, f.head.x*20, f.head.y*20);
       //ellipseMode(CENTER); 

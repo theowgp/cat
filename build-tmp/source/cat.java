@@ -34,26 +34,27 @@ Drawer drawer;
 
 public void setup() {
   
-  //set main forces  
+  //set main forces 
   Flocking     flocking = new Flocking(      30, //repulsion range
                                              4,  //repulsion force    
                                              50, //allignment range     
                                              250,//attraction range       
                                              2,  //attraction force     
-                                             10 //constraining velocity      
+                                             10 //constraining velocity
                                              );
   
-  Elasticity elasticity = new Elasticity(    30-3,//repulsion range
-                                             10,  //elastic force      
-                                             30+3,//still range        
+  Elasticity elasticity = new Elasticity(    50-3,//repulsion range
+                                             3,  //elastic force      
+                                             50+3,//still range        
                                              (float)Math.sqrt(width*width+height*height),  //attraction range    
-                                             10,  //elastic force       
-                                             10  //constraining velocity      
+                                             3,  //elastic force       
+                                             5  //constraining velocity
                                              );
   
   
   //set Engin
-  eng = new Engine( 3,          //number of floaters
+  eng = new Engine( 0,          //number of created birds
+                    3,          //number of floaters
                     15,         //size of a floater 
                     elasticity, //slastic force 
                     flocking,   //flocking force
@@ -70,7 +71,7 @@ public void setup() {
   
   
   background(drawer.bg);
-  frameRate(25);
+  frameRate(30);
   noFill(); 
   stroke(0);
   strokeWeight(1);
@@ -83,23 +84,21 @@ public void draw() {
   background(drawer.bg);
   
   eng.IterateFrame();
-  //draw floaters
-  drawer.SetFloaters(eng.floaters);
-  drawer.SetConnect_floaters(true);
-  drawer.draw();
-  //draw birds
-  //drawer.SetConnect_floaters(false);
-  //drawer.SetFloaters(eng.birds);
-  //drawer.draw();
   
+  //draw floaters
+  drawer.SetFloaters(eng.agents);
+  drawer.SetMatrix(eng.GetConnectionMatrix());  
+  drawer.draw();
+  
+
   
   //to test the IsInDashAreaOf() function
-  //for (int i = 1; i < eng.floaters.size(); i++) {
-  //  float xx = eng.floaters.get(i-1).x + (eng.floaters.get(i).x - eng.floaters.get(i-1).x)/2 -eng.floaters.get(i-1).s*2;
-  //  float yy = eng.floaters.get(i-1).y + (eng.floaters.get(i).y - eng.floaters.get(i-1).y)/2 +eng.floaters.get(i-1).s/3;
-  //  ellipse(xx, yy, 10, 10);
-  //  eng.IsInDashedAreaOf( eng.floaters.get(i-1),   eng.floaters.get(i-1),    eng.floaters.get(i) );
-  //}
+  // for (int i = 1; i < eng.floaters.size(); i++) {
+  //  //float xx = eng.floaters.get(i-1).x + (eng.floaters.get(i).x - eng.floaters.get(i-1).x)/2 -eng.floaters.get(i-1).s*2;
+  //  //float yy = eng.floaters.get(i-1).y + (eng.floaters.get(i).y - eng.floaters.get(i-1).y)/2 +eng.floaters.get(i-1).s/3;
+  //  //ellipse(xx, yy, 10, 10);
+  //  eng.IsOnTheLineBetween( eng.floaters.get(i-1),   eng.floaters.get(i-1),    eng.floaters.get(i) );
+  // }
 }
 
 
@@ -143,6 +142,12 @@ class Drawer{
     this.floaters=floaters;
   }
   
+  int[][] matrix;
+  public void SetMatrix(int[][] matrix){
+    this.matrix=matrix;
+  }
+  
+  
   int flappingRate;
   
   //background image
@@ -158,10 +163,7 @@ class Drawer{
   //if true frame of the the window is open and looped
   boolean open_frame;
   
-  boolean connect_floaters;
-  public void SetConnect_floaters(boolean connect_floaters){
-    this.connect_floaters = connect_floaters;
-  }
+  
 
 
   
@@ -174,7 +176,7 @@ class Drawer{
     this.floaters = floaters;
     this.flappingRate = flappingRate;
     this.open_frame=open_frame;
-    this.connect_floaters=connect_floaters;
+    
     
     LoadImages();
     LoadSound(object);
@@ -205,7 +207,7 @@ class Drawer{
  
   
   public void draw() {
-    if(connect_floaters) ConnectFloaters();
+    ConnectFloaters();
     
     //draw each floater
     for (int i = 0; i < floaters.size(); i++) {
@@ -236,8 +238,10 @@ class Drawer{
   public void ConnectFloaters(){
     fill(0);
     strokeWeight(2); 
-    for (int i = 1; i < floaters.size(); i++) {
-      line(floaters.get(i-1).x, floaters.get(i-1).y, floaters.get(i).x, floaters.get(i).y);
+    for (int i = 0; i < floaters.size(); i++) {
+      for (int j = i; j < floaters.size(); j++) {
+        if(matrix[i][j] == 1)  line(floaters.get(i).x, floaters.get(i).y, floaters.get(j).x, floaters.get(j).y);
+      }
     }
   }
   
@@ -332,14 +336,6 @@ class Elasticity extends Force {
   
   
   
-  
-  public void Apply(){
-    for (int i = 1; i < floaters.size(); i++) {
-      Interract(floaters.get(i-1), floaters.get(i));
-      Interract(floaters.get(floaters.size()-i), floaters.get(floaters.size()-i-1));
-    }
-  }
- 
  
 }   
    
@@ -350,15 +346,20 @@ class Engine {
   
   
     
+  //array of agents: birds and floaters altogether
+  ArrayList<Floater> agents = new ArrayList<Floater>();
+  
   
   //array of floaters
   ArrayList<Floater> birds = new ArrayList<Floater>();
-  //size of a bird
+  
     
   //array of floaters
   ArrayList<Floater> floaters = new ArrayList<Floater>();
+  
   //size of a foater
   float s;
+  
   //minimal allowed distance between birds
   float eps=4;
   
@@ -370,6 +371,11 @@ class Engine {
   Flocking flocking;
   float friction;
   
+  //force of interaction between floaters and birds
+  Force force;
+  
+  
+  
  
  
   
@@ -378,28 +384,49 @@ class Engine {
   
   
   
-  Engine(int n, float s, Elasticity elst, Flocking flk, float frct){
+  Engine(int m, int n, float s, Elasticity elst, Flocking flk, float frct){
     this.s=s;
     this.friction=frct;
     
-    this.elasticity=elst;
+    //this.elasticity=elst;
+    this.elasticity=null;
     this.flocking=flk;
     
     
     
     //create initial floater
-    floaters.add(new Floater(flocking.floater_vr, s));
+    for (int i = 0; i < n; i++) {
+      floaters.add(new Floater(flocking.floater_vr, s));
+    }
     
     //creating birds
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < m; i++) {
       birds.add(new Floater(flocking.floater_vr, s));
     }
     
+    //create agents
+    agents = new ArrayList<Floater>();
+    agents.addAll(birds);
+    agents.addAll(floaters);
     
-    elasticity.SetFloaters(floaters);
     
-    
+    //elasticity.SetFloaters(floaters);
+    //elasticity.CreateMatrix();
+        
     flocking.SetFloaters(birds);
+    flocking.CreateMatrix();
+        
+    force = new Force(elst);
+    force.SetFloaters(agents);
+    force.CreateMatrix();
+    
+    
+    //for (int i = 0; i < floaters.size(); i++) {
+    //  for (int j = 0; j < floaters.size(); j++) {
+    //    print(elasticity.matrix[i][j], "  ");
+    //  }
+    //  println();
+    //}
  }
   
   
@@ -417,10 +444,12 @@ class Engine {
     }
 
     
+    
+    
     //ThrowOut();
-    PlugIn();
-    for(Floater f:floaters){print("x=",(int)f.x," y=", (int)f.y, " | ");}
-    println();
+    //PlugIn();
+    //for(Floater f:floaters){print("x=",(int)f.x," y=", (int)f.y, " | ");}
+    //println();
 
     // if(justfortest){
     //   ArrayList<Floater> ints = new ArrayList<Floater>();
@@ -440,7 +469,26 @@ class Engine {
 
 
 
-  
+  public int[][] GetConnectionMatrix(){
+    int[][] mtrx = new int[agents.size()][agents.size()];
+    
+    for (int i = 0; i < agents.size(); i++) {
+      for (int j = 0; j < agents.size(); j++) {
+        if(birds.size()<=i && birds.size()<=j && Math.abs(i-j)==1) mtrx[i][j] = force.matrix[i][j];//1;
+        else mtrx[i][j] = force.matrix[i][j];
+      }
+    }
+    return mtrx;
+  }
+  public void PrintMatrix(int[][] m){
+    for (int i = 0; i < agents.size(); i++) {
+      for (int j = 0; j < agents.size(); j++) {
+        print(m[i][j],"  ");
+      }
+      println();
+    }
+    println();
+  }
   
   
   
@@ -467,66 +515,102 @@ class Engine {
   
   
   public void DetermineVelocities(){
-    flocking.Apply();//for birds    
-    //elasticity.Apply();//for floaters
+    for (int i = 0; i < agents.size(); i++) {
+      //ThrowOut(i);
+      PlugIn(i);
+    }
+    // println("+++++++++++++++++++++++++++++++++");
+    // PrintMatrix(GetConnectionMatrix());
+    // RenewChainConnection();
+    // PrintMatrix(GetConnectionMatrix());
+    // println("+++++++++++++++++++++++++++++++++");
+
+    
+    
+    //flocking.Apply(); //for birds    
+    /////////////////elasticity.Apply();//for floaters//included in force now!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    force.Apply();
   }
+
+  public void RenewChainConnection(){
+    for (int i = birds.size()+1; i < agents.size(); i++) {
+      force.matrix[i-1][i]=1;
+      force.matrix[i][i-1]=1;
+    }
+  }
+  
   
  
  
-
- public void ThrowOut(){
-   for (int i = 1; i < floaters.size()-1; i++) {
-     if( IsInDashedAreaOf(floaters.get(i), floaters.get(i-1), floaters.get(i+1)) ){
-       floaters.remove(i);
+ //go through all the edges of the representative graph and 
+ //plug the floater if it is "positioned" on line segment between a pair of floaters representing an edge in the representative graph
+ public void PlugIn(int k){
+   //println("start PlugIn");
+   //for ( Integer[] edge:GetEdges() ) {println("edge[",edge[0],", ", edge[1], "]"); }
+   for ( Integer[] edge:GetEdges() ) {
+     //println("floater ", k," is on edge[",edge[0],", ", edge[1],"]: ", ( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ));
+     if( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ){
+       println("floater ", k," is on edge[",edge[0],", ", edge[1],"]: ", ( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ));
+       //remove edge [edge[0]] [edge[1]]
+       PrintMatrix(GetConnectionMatrix());
+       force.matrix [edge[0]] [edge[1]] = 0;
+       force.matrix [edge[1]] [edge[0]] = 0;
+       //add edge [edge[0]] [k] and [edge[1]] [k]
+       force.matrix [edge[0]] [k]       = 1;
+       force.matrix [k]       [edge[0]] = 1;
+       force.matrix [edge[1]] [k]       = 1;
+       force.matrix [k]       [edge[1]] = 1;
+       //println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadd");
+       PrintMatrix(GetConnectionMatrix());
      }
    }
  }
- 
-   
 
- //int k=0;
- public void PlugIn(){
-  ArrayList<Floater> tempfs = new ArrayList<Floater>();
-  ArrayList<Integer> pos = new ArrayList<Integer>();
+ public ArrayList<Integer[]> GetEdges(){
+   ArrayList<Integer[]> edges = new ArrayList<Integer[]>();
+   for (int i = 0; i < agents.size(); i++) {
+      for (int j = i; j < agents.size(); j++) {
+        if(force.matrix[i][j] == 1) edges.add( new Integer[]{i, j} );
+      }
+    } 
+    return edges;
+ }
 
-   for (int i = 0; i < floaters.size(); i++) {
-     for (int j = 1; j < floaters.size(); j++) {
-       if( Math.abs(i - j) > 1   &&   IsInDashedAreaOf(floaters.get(i), floaters.get(j-1), floaters.get(j)) ){//&& k<300){
-         //floaters.add(floaters.get(i));return;
-         tempfs.add(floaters.get(i));
-         //tempfs.add(new Floater(floaters.get(i)));
-         // floaters.add(new Floater(flocking.floater_vr, s, mouseX-s/2, mouseY-s/2));
-         // println("addddddddd");
-         pos.add(j);
-         //k++;
-
+ //get all incident floaters to the given floater and 
+ //check if it is "positioned" on the line segment between any two of its incident floaters 
+ public void ThrowOut(int k){
+   ArrayList<Integer> incdc = GetIncidentFloaters(k);  
+   for (int i = 0; i < incdc.size(); i++) {
+      for (int j = 0; j < incdc.size(); j++) {
+        if( IsOnTheLineBetween(agents.get(k), agents.get(incdc.get(i)), agents.get(incdc.get(j))) ){
+          //floater k is no more incident to incdc[i] and floater ncdc[i] is no more incident to k
+          force.matrix [k]            [incdc.get(i)] = 0;
+          force.matrix [incdc.get(i)] [k]            = 0;
+          //floater k is no more incident to incdc[j] and floater ncdc[j] is no more incident to k      
+          force.matrix [k]            [incdc.get(j)] = 0;
+          force.matrix [incdc.get(j)] [k]            = 0;
+          //floater [incdc[i]] is incident to [incdc[j]] and floater [incdc[j]] is incident to [incdc[i]]
+          force.matrix [incdc.get(i)] [incdc.get(j)] = 1;      
+          force.matrix [incdc.get(j)] [incdc.get(i)] = 1;      
        }
      }
    }
-
-   for(int i=0; i<pos.size();i++){
-     floaters.add(pos.get(i), tempfs.get(i));     
-     //floaters.add(tempfs.get(i));     
-     //floaters.add(new Floater(flocking.floater_vr, s, mouseX-s/2, mouseY-s/2));
-     println("addddddddd");
-   } 
  }
+
+ public ArrayList<Integer> GetIncidentFloaters(int k){
+   ArrayList<Integer> incdc = new ArrayList<Integer> ();
+   for (int j = 0; j < agents.size(); j++) {
+        if(force.matrix[k][j] == 1) incdc.add(j);
+   } 
+    return incdc;
+ }
+
+
  
 
 
-
-
-
-
-
-
- 
- 
- 
- 
-
- public boolean IsInDashedAreaOf(Floater f, Floater f1, Floater f2){
-      float eps=f.s/12;
+ public boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
+      float eps=f.s/8;
       float xx = f.x;
       float yy = f.y;
       
@@ -547,23 +631,23 @@ class Engine {
       
       
       rotate(angle);
-      //xx = (float)( xx*Math.cos(angle) - yy*Math.sin(angle) );
-      //yy = (float)( xx*Math.sin(angle) + yy*Math.cos(angle) );
+      xx = (float)( xx*Math.cos(angle) + yy*Math.sin(angle) );
+      yy = (float)( -xx*Math.sin(angle) + yy*Math.cos(angle) );
       float cosphi=(float)(xx/Math.sqrt(xx*xx + yy*yy));
       float sinphi=(float)(yy/Math.sqrt(xx*xx + yy*yy));
-      xx = ( xx/cosphi)*(float)Math.cos((acos(cosphi)-acos(cos)));
-      yy = ( yy/sinphi)*(float)Math.sin((acos(cosphi)-acos(cos)));
+      //xx = ( xx/cosphi)*(float)Math.cos((acos(cosphi)-acos(cos)));
+      //yy = ( yy/sinphi)*(float)Math.sin((acos(cosphi)-acos(cos)));
       
       
       translate(f1.s/2, -eps);
       xx-=f1.s/2;
       yy-=-eps;
       //
-      //strokeWeight(2); 
-      //fill(255);
+      strokeWeight(2); 
+      fill(255);
       //rect(0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s, 2*eps);
-      //ellipseMode(CENTER);
-      //ellipse(xx, yy, 10, 10);
+      ellipseMode(CENTER);
+      ellipse(xx, yy, 10, 10);
       //
       //println(IsInRectangle(xx, yy, 0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s/2, f1.s));
       boolean res = IsInRectangle(xx, yy, 0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s/2, 2*eps);
@@ -574,7 +658,7 @@ class Engine {
    
    
  public boolean IsInRectangle(float x, float y, float rx, float ry, float rl, float rw){
-    if(x > rx && x < rx+rl && y > ry && y < ry + rw){
+    if(x >= rx && x <= rx+rl && y >= ry && y <= ry + rw){
       return true;
     }
     return false;
@@ -658,7 +742,7 @@ class Engine {
     if(mouseButton == LEFT){
       if(pbk>=0){
          //determine the velocity at which to throw the ball
-         elasticity.AddVelocity(floaters.get(pbk), mouseX-pmouseX,  mouseY-pmouseY);
+         force.AddVelocity(floaters.get(pbk), mouseX-pmouseX,  mouseY-pmouseY);
          //make a floater movable again
          floaters.get(pbk).still = false;
          pbk=-1;
@@ -711,9 +795,9 @@ class Floater {
     //initialize random positions and random velocities
     x = (int)random(100, width-100);
     y = (int)random(100, height-100);
-    vx = random(-floater_vr, floater_vr);
-    vy = random(-floater_vr, floater_vr);
-    this.s=s;
+    vx =0 ;// random(-floater_vr, floater_vr);
+    vy = 0;//random(-floater_vr, floater_vr);
+    this.s = s;
     
     frameCounteri = (int)random(3.999f);
     frameCounter = 0;
@@ -751,24 +835,34 @@ class Flocking extends Force {
     super(rr, fr, rs, ra, fa, fvr);
   }
   
+  public void CreateMatrix(){
+    matrix = new int[floaters.size()][floaters.size()];
+    
+    for (int i = 0; i < floaters.size(); i++) {
+      for (int j = 0; j < floaters.size(); j++) {
+        if(i!=j) matrix[i][j] = 1;
+        else matrix[i][j] = 0;
+      }
+    }
+  }
   
   
   
   
   public void Apply(){
-    for (int j = 0; j < floaters.size(); j++) {
+    for (int i = 0; i < floaters.size(); i++) {
       //determine relative velocities
-      for (int i = 0; i < floaters.size(); i++) {
-        if (i!=j){//doesn't consider itself
-          float d = dist(floaters.get(i).x, floaters.get(i).y, floaters.get(j).x, floaters.get(j).y);
+      for (int j = 0; j < floaters.size(); j++) {
+        if (matrix[i][j] == 1){
+          float d = dist(floaters.get(j).x, floaters.get(j).y, floaters.get(i).x, floaters.get(i).y);
           //allignment
           if(r_repulsion <=d && d <= r_still){
-            floaters.get(j).vx = (floaters.get(j).vx + floaters.get(i).vx)/2;    
-            floaters.get(j).vy = (floaters.get(j).vy + floaters.get(i).vy)/2;
+            floaters.get(i).vx = (floaters.get(i).vx + floaters.get(j).vx)/2;    
+            floaters.get(i).vy = (floaters.get(i).vy + floaters.get(j).vy)/2;
           }
           //repulsion or attraction
           else{
-            Interract(floaters.get(j), floaters.get(i));
+            Interract(floaters.get(i), floaters.get(j));
           }
         }
       }
@@ -801,6 +895,12 @@ class Force {
     this.floaters=floaters;
   }
   
+  //interaction matrix
+  int[][] matrix;
+  public void SetMatrix(int[][] matrix){
+    this.matrix=matrix;
+  }
+
   
   
   
@@ -828,15 +928,50 @@ class Force {
     f_attraction=fa;
     
     
+    
     floater_vr=fvr;
  }
+ 
+ Force(Force f){
+    //independent movement's laws
+    r_repulsion=f.r_repulsion;
+    f_repulsion=f.f_repulsion;
+    r_still=f.r_still;
+    r_attraction= f.r_attraction;
+    f_attraction=f.f_attraction;
+    
+    
+    
+    floater_vr=f.floater_vr;
+ }
+ 
+ 
+ 
+public void CreateMatrix(){
+    matrix = new int[floaters.size()][floaters.size()];
+    
+    for (int i = 0; i < floaters.size(); i++) {
+      for (int j = 0; j < floaters.size(); j++) {
+        if(Math.abs(i-j) == 1) matrix[i][j] = 1;
+        else matrix[i][j] = 0;
+      }
+    }
+  }
+ 
+   
   
   
   
-  
-  
-   //virtuall   
-   public void Apply(){}
+  public void Apply(){
+    for (int i = 0; i < floaters.size(); i++) {
+      //determine relative velocities
+      for (int j = 0; j < floaters.size(); j++) {
+        if (matrix[i][j] == 1){
+          Interract(floaters.get(i), floaters.get(j));
+        }
+      }
+    }
+  }
   
 
 

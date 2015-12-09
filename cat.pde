@@ -24,12 +24,12 @@ void setup() {
                                              10 //constraining velocity
                                              );
   
-  Elasticity elasticity = new Elasticity(    30-3,//repulsion range
-                                             10,  //elastic force      
-                                             30+3,//still range        
+  Elasticity elasticity = new Elasticity(    50-3,//repulsion range
+                                             3,  //elastic force      
+                                             50+3,//still range        
                                              (float)Math.sqrt(width*width+height*height),  //attraction range    
-                                             10,  //elastic force       
-                                             10  //constraining velocity
+                                             3,  //elastic force       
+                                             5  //constraining velocity
                                              );
   
   
@@ -52,7 +52,7 @@ void setup() {
   
   
   background(drawer.bg);
-  frameRate(25);
+  frameRate(30);
   noFill(); 
   stroke(0);
   strokeWeight(1);
@@ -74,12 +74,12 @@ void draw() {
 
   
   //to test the IsInDashAreaOf() function
-  //for (int i = 1; i < eng.floaters.size(); i++) {
-  //  float xx = eng.floaters.get(i-1).x + (eng.floaters.get(i).x - eng.floaters.get(i-1).x)/2 -eng.floaters.get(i-1).s*2;
-  //  float yy = eng.floaters.get(i-1).y + (eng.floaters.get(i).y - eng.floaters.get(i-1).y)/2 +eng.floaters.get(i-1).s/3;
-  //  ellipse(xx, yy, 10, 10);
-  //  eng.IsInDashedAreaOf( eng.floaters.get(i-1),   eng.floaters.get(i-1),    eng.floaters.get(i) );
-  //}
+  // for (int i = 1; i < eng.floaters.size(); i++) {
+  //  //float xx = eng.floaters.get(i-1).x + (eng.floaters.get(i).x - eng.floaters.get(i-1).x)/2 -eng.floaters.get(i-1).s*2;
+  //  //float yy = eng.floaters.get(i-1).y + (eng.floaters.get(i).y - eng.floaters.get(i-1).y)/2 +eng.floaters.get(i-1).s/3;
+  //  //ellipse(xx, yy, 10, 10);
+  //  eng.IsOnTheLineBetween( eng.floaters.get(i-1),   eng.floaters.get(i-1),    eng.floaters.get(i) );
+  // }
 }
 
 

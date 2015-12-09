@@ -108,8 +108,8 @@ class Drawer{
   void ConnectFloaters(){
     fill(0);
     strokeWeight(2); 
-    for (int i = 0; i < floaters.size()-1; i++) {
-      for (int j = i+1; j < floaters.size(); j++) {
+    for (int i = 0; i < floaters.size(); i++) {
+      for (int j = i; j < floaters.size(); j++) {
         if(matrix[i][j] == 1)  line(floaters.get(i).x, floaters.get(i).y, floaters.get(j).x, floaters.get(j).y);
       }
     }

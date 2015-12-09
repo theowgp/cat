@@ -47,7 +47,8 @@ class Engine {
     this.s=s;
     this.friction=frct;
     
-    this.elasticity=elst;
+    //this.elasticity=elst;
+    this.elasticity=null;
     this.flocking=flk;
     
     
@@ -68,13 +69,13 @@ class Engine {
     agents.addAll(floaters);
     
     
-    elasticity.SetFloaters(floaters);
-    elasticity.CreateMatrix();
+    //elasticity.SetFloaters(floaters);
+    //elasticity.CreateMatrix();
         
     flocking.SetFloaters(birds);
     flocking.CreateMatrix();
         
-    force = new Force(elasticity);
+    force = new Force(elst);
     force.SetFloaters(agents);
     force.CreateMatrix();
     
@@ -132,11 +133,20 @@ class Engine {
     
     for (int i = 0; i < agents.size(); i++) {
       for (int j = 0; j < agents.size(); j++) {
-        if(birds.size()<=i && birds.size()<=j && Math.abs(i-j)==1) mtrx[i][j] = 1;
+        if(birds.size()<=i && birds.size()<=j && Math.abs(i-j)==1) mtrx[i][j] = force.matrix[i][j];//1;
         else mtrx[i][j] = force.matrix[i][j];
       }
     }
     return mtrx;
+  }
+  void PrintMatrix(int[][] m){
+    for (int i = 0; i < agents.size(); i++) {
+      for (int j = 0; j < agents.size(); j++) {
+        print(m[i][j],"  ");
+      }
+      println();
+    }
+    println();
   }
   
   
@@ -165,45 +175,101 @@ class Engine {
   
   void DetermineVelocities(){
     for (int i = 0; i < agents.size(); i++) {
-      TriggerInteraction(force, agents.get(i), i);
+      //ThrowOut(i);
+      PlugIn(i);
     }
+    // println("+++++++++++++++++++++++++++++++++");
+    // PrintMatrix(GetConnectionMatrix());
+    // RenewChainConnection();
+    // PrintMatrix(GetConnectionMatrix());
+    // println("+++++++++++++++++++++++++++++++++");
+
     
     
-    ///flocking.Apply(); //for birds    
-    //elasticity.Apply();//for floaters
+    //flocking.Apply(); //for birds    
+    /////////////////elasticity.Apply();//for floaters//included in force now!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     force.Apply();
   }
+
+  void RenewChainConnection(){
+    for (int i = birds.size()+1; i < agents.size(); i++) {
+      force.matrix[i-1][i]=1;
+      force.matrix[i][i-1]=1;
+    }
+  }
+  
   
  
  
-
- void TriggerInteraction(Force force, Floater f ,int k){
-   for (int i = 1; i < floaters.size(); i++) {
-     if( i!=k && i!=k+1  && IsInDashedAreaOf(f, floaters.get(i-1), floaters.get(i)) ){
-       if (force.matrix[k][birds.size()+i-1] == 1){
-         force.matrix[k][birds.size()+i-1] = 0;
-         force.matrix[birds.size()+i][birds.size()+i-1] = 1;
-       }
-       else{
-         force.matrix[k][birds.size()+i-1] = 1;
-         force.matrix[birds.size()+i][birds.size()+i-1] = 0;
-       }
-       
-       if (force.matrix[birds.size()+i-1][k] == 1){
-         force.matrix[birds.size()+i-1][k] = 0;
-         force.matrix[birds.size()+i-1][birds.size()+i] = 1;
-       }
-       else{
-         force.matrix[birds.size()+i-1][k] = 1;
-         force.matrix[birds.size()+i-1][birds.size()+i] = 0;
-       }
-       
+ //go through all the edges of the representative graph and 
+ //plug the floater if it is "positioned" on line segment between a pair of floaters representing an edge in the representative graph
+ void PlugIn(int k){
+   //println("start PlugIn");
+   //for ( Integer[] edge:GetEdges() ) {println("edge[",edge[0],", ", edge[1], "]"); }
+   for ( Integer[] edge:GetEdges() ) {
+     //println("floater ", k," is on edge[",edge[0],", ", edge[1],"]: ", ( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ));
+     if( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ){
+       println("floater ", k," is on edge[",edge[0],", ", edge[1],"]: ", ( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ));
+       //remove edge [edge[0]] [edge[1]]
+       PrintMatrix(GetConnectionMatrix());
+       force.matrix [edge[0]] [edge[1]] = 0;
+       force.matrix [edge[1]] [edge[0]] = 0;
+       //add edge [edge[0]] [k] and [edge[1]] [k]
+       force.matrix [edge[0]] [k]       = 1;
+       force.matrix [k]       [edge[0]] = 1;
+       force.matrix [edge[1]] [k]       = 1;
+       force.matrix [k]       [edge[1]] = 1;
+       //println("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaadd");
+       PrintMatrix(GetConnectionMatrix());
      }
    }
  }
+
+ ArrayList<Integer[]> GetEdges(){
+   ArrayList<Integer[]> edges = new ArrayList<Integer[]>();
+   for (int i = 0; i < agents.size(); i++) {
+      for (int j = i; j < agents.size(); j++) {
+        if(force.matrix[i][j] == 1) edges.add( new Integer[]{i, j} );
+      }
+    } 
+    return edges;
+ }
+
+ //get all incident floaters to the given floater and 
+ //check if it is "positioned" on the line segment between any two of its incident floaters 
+ void ThrowOut(int k){
+   ArrayList<Integer> incdc = GetIncidentFloaters(k);  
+   for (int i = 0; i < incdc.size(); i++) {
+      for (int j = 0; j < incdc.size(); j++) {
+        if( IsOnTheLineBetween(agents.get(k), agents.get(incdc.get(i)), agents.get(incdc.get(j))) ){
+          //floater k is no more incident to incdc[i] and floater ncdc[i] is no more incident to k
+          force.matrix [k]            [incdc.get(i)] = 0;
+          force.matrix [incdc.get(i)] [k]            = 0;
+          //floater k is no more incident to incdc[j] and floater ncdc[j] is no more incident to k      
+          force.matrix [k]            [incdc.get(j)] = 0;
+          force.matrix [incdc.get(j)] [k]            = 0;
+          //floater [incdc[i]] is incident to [incdc[j]] and floater [incdc[j]] is incident to [incdc[i]]
+          force.matrix [incdc.get(i)] [incdc.get(j)] = 1;      
+          force.matrix [incdc.get(j)] [incdc.get(i)] = 1;      
+       }
+     }
+   }
+ }
+
+ ArrayList<Integer> GetIncidentFloaters(int k){
+   ArrayList<Integer> incdc = new ArrayList<Integer> ();
+   for (int j = 0; j < agents.size(); j++) {
+        if(force.matrix[k][j] == 1) incdc.add(j);
+   } 
+    return incdc;
+ }
+
+
  
- boolean IsInDashedAreaOf(Floater f, Floater f1, Floater f2){
-      float eps=f.s/12;
+
+
+ boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
+      float eps=f.s/8;
       float xx = f.x;
       float yy = f.y;
       
@@ -224,8 +290,8 @@ class Engine {
       
       
       rotate(angle);
-      //xx = (float)( xx*Math.cos(angle) - yy*Math.sin(angle) );
-      //yy = (float)( xx*Math.sin(angle) + yy*Math.cos(angle) );
+      xx = (float)( xx*Math.cos(angle) - yy*Math.sin(angle) );
+      yy = (float)( xx*Math.sin(angle) + yy*Math.cos(angle) );
       float cosphi=(float)(xx/Math.sqrt(xx*xx + yy*yy));
       float sinphi=(float)(yy/Math.sqrt(xx*xx + yy*yy));
       xx = ( xx/cosphi)*(float)Math.cos((acos(cosphi)-acos(cos)));
@@ -236,11 +302,11 @@ class Engine {
       xx-=f1.s/2;
       yy-=-eps;
       //
-      //strokeWeight(2); 
-      //fill(255);
+      strokeWeight(2); 
+      fill(255);
       //rect(0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s, 2*eps);
-      //ellipseMode(CENTER);
-      //ellipse(xx, yy, 10, 10);
+      ellipseMode(CENTER);
+      ellipse(xx, yy, 10, 10);
       //
       //println(IsInRectangle(xx, yy, 0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s/2, f1.s));
       boolean res = IsInRectangle(xx, yy, 0, 0, dist(f1.x, f1.y, f2.x, f2.y)-f1.s/2, 2*eps);
@@ -248,10 +314,15 @@ class Engine {
       popMatrix();
       return res;
   }
+
+
+
+
+  
    
    
  boolean IsInRectangle(float x, float y, float rx, float ry, float rl, float rw){
-    if(x > rx && x < rx+rl && y > ry && y < ry + rw){
+    if(x >= rx && x <= rx+rl && y >= ry && y <= ry + rw){
       return true;
     }
     return false;
@@ -335,7 +406,7 @@ class Engine {
     if(mouseButton == LEFT){
       if(pbk>=0){
          //determine the velocity at which to throw the ball
-         elasticity.AddVelocity(floaters.get(pbk), mouseX-pmouseX,  mouseY-pmouseY);
+         force.AddVelocity(floaters.get(pbk), mouseX-pmouseX,  mouseY-pmouseY);
          //make a floater movable again
          floaters.get(pbk).still = false;
          pbk=-1;

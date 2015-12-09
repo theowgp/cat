@@ -60,12 +60,13 @@ class Force {
  
  
  
- void CreateMatrix(){
+void CreateMatrix(){
     matrix = new int[floaters.size()][floaters.size()];
     
     for (int i = 0; i < floaters.size(); i++) {
       for (int j = 0; j < floaters.size(); j++) {
-        matrix[i][j] = 0;
+        if(Math.abs(i-j) == 1) matrix[i][j] = 1;
+        else matrix[i][j] = 0;
       }
     }
   }

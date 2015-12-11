@@ -6,16 +6,24 @@ class Engine {
   
     
   
+  
   //array of floaters
   ArrayList<Floater> birds = new ArrayList<Floater>();
-  //size of a bird
-    
+      
   //array of floaters
   ArrayList<Floater> floaters = new ArrayList<Floater>();
+  
+  //array of floaters and birds
+  ArrayList<Floater> agents = new ArrayList<Floater>();
+  
+  //array of floaters and agents in the net
+  ArrayList<Floater> net = new ArrayList<Floater>();
+  
   //size of a foater
   float s;
-  //minimal allowed distance between birds
-  float eps=4;
+  //minimal distace required for a floater to reach betwen an edge it has just interracted with    
+  //to interract with it again
+  float dminf1f2 = 5;
   
   //for throwing a boid
   int pbk=-1;//pressed boid k
@@ -25,7 +33,7 @@ class Engine {
   Flocking flocking;
   float friction;
   
-  float sensitivity =0.4;
+  float sensitivity = 0.4;
   
  
  
@@ -35,7 +43,7 @@ class Engine {
   
   
   
-  Engine(int n, float s, Elasticity elst, Flocking flk, float frct){
+  Engine(int m, int n, float s, Elasticity elst, Flocking flk, float frct){
     this.s=s;
     this.friction=frct;
     
@@ -45,72 +53,138 @@ class Engine {
     
     
     //create initial floater
-    floaters.add(new Floater(flocking.floater_vr, s));
+    for (int i = 0; i < n; i++) {
+      floaters.add(new Floater(elasticity.floater_vr, s));
+    }
+    for (int i = 1; i < n-1; i++) {
+      floaters.get(i).left  = floaters.get(i-1);
+      floaters.get(i).right = floaters.get(i+1);
+    }
+    floaters.get(0).left = null;
+    floaters.get(0).right = floaters.get(1);
+    floaters.get(n-1).left = floaters.get(n-2);
+    floaters.get(n-1).right = null;
+    
     
     //creating birds
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < m; i++) {
       birds.add(new Floater(flocking.floater_vr, s));
+      birds.get(i).left  = null;
+      birds.get(i).right = null;
     }
     
+    //create agents
+    agents.addAll(birds);
+    agents.addAll(floaters);
     
-    elasticity.SetFloaters(floaters);
+    //create the net
+    net.addAll(floaters);
     
-    
+ 
+    elasticity.SetFloaters(net);
     flocking.SetFloaters(birds);
+    
+    
  }
   
   
   
   
   void IterateFrame(){
-    DetermineVelocities();
+    println(net.size());
+    //collide
+    Collisions();
     
-    for (int i = 0; i < floaters.size(); i++) {
-      Move(floaters.get(i));
+    //enable interactions with the last edge
+    for (int i = 1; i < net.size()-1; i++) {
+      if(!net.get(i).ilr){
+        if( DistancePointLine(net.get(i), net.get(i).left, net.get(i).right) > net.get(i).s+100 ){//dminf1f2){
+          net.get(i).ilr = true;
+        }
+      }
     }
     
-    for (int i = 0; i < birds.size(); i++) {
-      //Move(floaters.get(i));
-      Move(birds.get(i));
-    }
     
-    for (int i = 0; i < floaters.size(); i++) {
-      //if(!ThrowOut(i))PlugIn(i);
-      //ThrowOut(i);
+    for (int i = 0; i < agents.size(); i++) {
       PlugIn(i);
     }
-      
+    
+    for (int i = 1; i < net.size()-1; i++) {
+      //ThrowOut(i);
+    }
+    
+    DetermineVelocities();
+    
+    for (Floater f:agents) {
+      Move(f);
+    }
     
   }
   
   
   
+  float DistancePointLine(Floater f, Floater f1, Floater f2){
+    float x1 = f1.x;
+    float x2 = f2.x;
+    float y1 = f1.y; 
+    float y2 = f2.y;
+    
+    float x0 = f.x;
+    float y0 = f.y;
+    
+    return (float)(Math.abs((y2 - y1)*x0 - (x2 - x1)*y0 + x2*y1 - y2*x1)/Math.sqrt((y2 - y1)*(y2 - y1) + (x2 - x1)*(x2 - x1)));
+  }
   
   
+  
+  
+ 
   void Move(Floater f) {
-    //if(Allow(f)){
+    if(Allow(f)){
       f.x += f.vx * friction;
       f.y += f.vy * friction;
-    //}
+    }
   }
   
   //does not allow floaters to move to close
   boolean Allow(Floater f){
-   for (int i = 0; i < floaters.size(); i++) {
-     if((f != floaters.get(i))&&(dist(f.x+f.vx, f.y+f.vy, floaters.get(i).x, floaters.get(i).y) < eps)){
-       return false;                
-     }
-   }
-   return true;
+  for (int i = 0; i < floaters.size(); i++) {
+    if((f != floaters.get(i))&&(dist(f.x+f.vx, f.y+f.vy, floaters.get(i).x, floaters.get(i).y) < f.s+2)){//eps)){
+      return false;                
+    }
+  }
+  return true;
   }
   
+  
+  void Collisions(){
+    for (int i = 0; i < agents.size(); i++) {
+      for (int j = 0; j < agents.size(); j++) {
+        if( i!=j && dist(agents.get(i).x, agents.get(i).y, agents.get(j).x, agents.get(j).y) < (agents.get(i).s + agents.get(j).s)/2 ){//eps)){
+          Collide(agents.get(i), agents.get(j));
+        }
+      }
+    }
+  }
+  void Collide(Floater f1, Floater f2){
+    //float teta1 = atan(Math.abs(f1.vy/f1.vx));
+    //float teta2 = atan(Math.abs(f2.vy/f2.vx));
+    float v1 = (float)Math.sqrt(f1.vx*f1.vx + f1.vy*f1.vy);
+    float v2 = (float)Math.sqrt(f2.vx*f2.vx + f2.vy*f2.vy);
+    float av = (v1+v2)/2;
+    
+    float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
+    float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
+   
+    elasticity.AddVelocity(f1, ndy*av, ndx*av); 
+  } 
   
   
   
   
   void DetermineVelocities(){
-    flocking.Apply();//for birds    
-    //elasticity.Apply();//for floaters
+    //flocking.Apply();//for birds    
+    elasticity.Apply();//for floaters
   }
   
  
@@ -121,38 +195,59 @@ class Engine {
 
  boolean PlugIn(int k){
   boolean res = false; 
-  for (int i = 1; i < floaters.size(); i++) {
-     if(k != i && k != i-1 && IsOnTheLineBetween(floaters.get(k), floaters.get(i-1), floaters.get(i)) ){
-        floaters.add(i, new Floater(floaters.get(k)));
-        res = true;
+  for (int i = 1; i < net.size(); i++) {
+     if(k != i && k != i-1 && IsOnTheLineBetween(agents.get(k), net.get(i-1), net.get(i)) ){
+       //if( (agents.get(k).left != null && agents.get(k).right != null) && (agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i)) ){
+       //  if(agents.get(k).ilr){
+       //    net.add(i, agents.get(k));
+       //    agents.get(k).ilr = false;
+       //    res = true;
+       //  }
+       //}
+       //else{
+         agents.get(k).ilr = false;
+         net.get(i-1).right=agents.get(k);
+         net.get(i).left=agents.get(k);
+         
+         net.add(i, agents.get(k));
+         net.get(i).right = net.get(i+1);
+         net.get(i).left = net.get(i-1);
+         res = true;
+       //}
      }
   }
   return res;
  }
  
+ 
  boolean ThrowOut(int k){
-  boolean res = false; 
-  for (int i = 1; i < floaters.size()-1; i++) {
-      if(floaters.get(k) == floaters.get(i)){
-        if( k != i-1 && k != i+1 &&  IsOnTheLineBetween(floaters.get(k), floaters.get(i-1), floaters.get(i+1)) ){
-          floaters.remove(k);
-          floaters.trimToSize();
+   boolean res = false; 
+   if( IsOnTheLineBetween(net.get(k), net.get(k-1), net.get(k+1)) ){
+          net.remove(k);
+          net.trimToSize();
           res = true;
           println("Out");
-          
-        }
-      }
-    } 
+   } 
    return res;
  }
  
+//float Distff1f2(int k){
+//  boolean res = false; 
+//  for (int i = 1; i < floaters.size(); i++) {
+//     if(k != i && k != i-1 && IsOnTheLineBetween(floaters.get(k), floaters.get(i-1), floaters.get(i)) ){
+//        floaters.add(i, floaters.get(k));
+//        res = true;
+//     }
+//  }
+//  return res;
+// }
+ 
+ 
+ 
 
  
- 
- 
- 
 
-    boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
+  boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
     float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
     float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
     
@@ -160,6 +255,12 @@ class Engine {
     float x2 = f2.x + ndx*f2.s  - f.x;
     float y1 = f1.y - ndy*f1.s  - f.y;
     float y2 = f2.y + ndy*f2.s  - f.y;
+    
+    fill(0);
+    strokeWeight(5); 
+    line(x1+ f.x,y1+f.y,x2+f.x,y2+f.y);
+    ellipseMode(CENTER);
+    //ellipse(f.x,f.y, 30, 30);
     
     float s = ((f.s/2)* sensitivity)*((f.s/2)* sensitivity);
     float a = x1*x1 - 2*x1*x2 + x2*x2 + y1*y1 - 2*y1*y2 + y2*y2;
@@ -189,11 +290,11 @@ class Engine {
   
   
   //spawn a floater
-  void mouseClicked()  {
-    if(mouseButton == RIGHT){
-      floaters.add(new Floater(flocking.floater_vr, s, mouseX-s/2, mouseY-s/2));
-    }
-  }
+  //void mouseClicked()  {
+  //  if(mouseButton == RIGHT){
+  //    floaters.add(new Floater(flocking.floater_vr, s, mouseX-s/2, mouseY-s/2));
+  //  }
+  //}
   
  //drag a seazed pbk-th floater 
  void mouseDragged()  {

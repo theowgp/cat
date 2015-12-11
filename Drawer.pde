@@ -27,10 +27,6 @@ class Drawer{
   //if true frame of the the window is open and looped
   boolean open_frame;
   
-  boolean connect_floaters;
-  void SetConnect_floaters(boolean connect_floaters){
-    this.connect_floaters = connect_floaters;
-  }
 
 
   
@@ -39,11 +35,11 @@ class Drawer{
   
   
   
-  Drawer(ArrayList<Floater> floaters, int flappingRate, boolean open_frame, boolean connect_floaters, java.lang.Object object){
+  Drawer(ArrayList<Floater> floaters, int flappingRate, boolean open_frame, java.lang.Object object){
     this.floaters = floaters;
     this.flappingRate = flappingRate;
     this.open_frame=open_frame;
-    this.connect_floaters=connect_floaters;
+    
     
     LoadImages();
     LoadSound(object);
@@ -74,8 +70,6 @@ class Drawer{
  
   
   void draw() {
-    if(connect_floaters) ConnectFloaters();
-    
     //draw each floater
     for (int i = 0; i < floaters.size(); i++) {
       //Drawbird(floaters.get(i));
@@ -102,7 +96,7 @@ class Drawer{
   }
   
   //connects consequent floaters with lines
-  void ConnectFloaters(){
+  void Connect(ArrayList<Floater> floaters){
     fill(0);
     strokeWeight(2); 
     for (int i = 1; i < floaters.size(); i++) {

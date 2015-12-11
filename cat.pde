@@ -25,27 +25,28 @@ void setup() {
                                              );
   
   Elasticity elasticity = new Elasticity(    30-3,//repulsion range
-                                             10,  //elastic force      
+                                             5,  //elastic force      
                                              30+3,//still range        
                                              (float)Math.sqrt(width*width+height*height),  //attraction range    
-                                             10,  //elastic force       
+                                             5,  //elastic force       
                                              10  //constraining velocity      
                                              );
   
   
   //set Engin
-  eng = new Engine( 3,          //number of floaters
+  eng = new Engine( 0,          //number of birds
+                    3,          //number of floaters
                     15,         //size of a floater 
                     elasticity, //slastic force 
                     flocking,   //flocking force
-                    1           //friction coefficient
+                    0.5           //friction coefficient
                     );  
   
   //set Drawer
   drawer = new Drawer(null,//eng.floaters,                  
                        2,           //flapping rate    
                        false,        //the frame is open  
-                       true,         //connect floaters
+                     //true,         //connect floaters
                        this         //for Minim
                        );
   
@@ -65,13 +66,11 @@ void draw() {
   
   eng.IterateFrame();
   //draw floaters
-  drawer.SetFloaters(eng.floaters);
-  drawer.SetConnect_floaters(true);
+  drawer.SetFloaters(eng.agents);
+  drawer.Connect(eng.net);
   drawer.draw();
-  //draw birds
-  //drawer.SetConnect_floaters(false);
-  //drawer.SetFloaters(eng.birds);
-  //drawer.draw();
+  
+  
   
   
   //to test the IsInDashAreaOf() function
@@ -90,9 +89,9 @@ void mouseDragged()  {
 }
 
 
-void mouseClicked()  {
-  eng.mouseClicked();
-}
+//void mouseClicked()  {
+//  eng.mouseClicked();
+//}
 
 void mousePressed(){
   eng.mousePressed(); 

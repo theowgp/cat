@@ -16,8 +16,8 @@ class Floater {
   int number;
   
   //remember last neighbors
-  Floater left;
-  Floater right;
+  int left;
+  int right;
   //allow interraction between left and right
   boolean ilr = true;
     
@@ -34,15 +34,16 @@ class Floater {
   boolean isabird;
   
   
-  Floater(float floater_vr, float s) {
+  Floater(float floater_vr, float s, boolean isab) {
     //initialize random positions and random velocities
     x = (int)random(100, width-100);
     y = (int)random(100, height-100);
-    //vx = random(-floater_vr, floater_vr);
-    //vy = random(-floater_vr, floater_vr);
-    vx = 0;//random(-floater_vr, floater_vr);
-    vy = 0;//random(-floater_vr, floater_vr);
-    this.s=s;
+    vx = random(-floater_vr, floater_vr);
+    vy = random(-floater_vr, floater_vr);
+    //vx = 0;//random(-floater_vr, floater_vr);
+    //vy = 0;//random(-floater_vr, floater_vr);
+    this.s = s;
+    this.isabird = isab;
     
     frameCounteri = (int)random(3.999);
     frameCounter = 0;

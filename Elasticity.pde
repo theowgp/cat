@@ -1,3 +1,4 @@
+
 class Elasticity extends Force {
   
  
@@ -9,14 +10,5 @@ class Elasticity extends Force {
   
   
   
-  
-  void Apply(){
-    for (int i = 1; i < floaters.size(); i++) {
-      Interract(floaters.get(i-1), floaters.get(i));
-      Interract(floaters.get(floaters.size()-i), floaters.get(floaters.size()-i-1));
-    }
-  }
- 
  
 }   
-   

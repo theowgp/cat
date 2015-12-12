@@ -2,6 +2,11 @@ import ddf.minim.*;
  
  
 
+int  mosquitoes = 2;
+int spiders  = 3;
+
+
+
 
 Engine eng;
 Drawer drawer;
@@ -25,17 +30,17 @@ void setup() {
                                              );
   
   Elasticity elasticity = new Elasticity(    30-3,//repulsion range
-                                             5,  //elastic force      
+                                             4,  //elastic force      
                                              30+3,//still range        
                                              (float)Math.sqrt(width*width+height*height),  //attraction range    
-                                             5,  //elastic force       
+                                             4,  //elastic force       
                                              10  //constraining velocity      
                                              );
   
   
   //set Engin
-  eng = new Engine( 2,          //number of birds
-                    3,          //number of floaters
+  eng = new Engine( mosquitoes ,          //number of birds
+                    spiders,          //number of floaters
                     15,         //size of a floater 
                     elasticity, //slastic force 
                     flocking,   //flocking force
@@ -52,7 +57,7 @@ void setup() {
   
   
   background(drawer.bg);
-  frameRate(25);
+  frameRate(30);
   noFill(); 
   stroke(0);
   strokeWeight(1);
@@ -67,7 +72,8 @@ void draw() {
   eng.IterateFrame();
   //draw floaters
   drawer.SetFloaters(eng.agents);
-  drawer.Connect(eng.net);
+  drawer.SetMatrix(eng.GetConnectionMatrix());
+  drawer.Connect();
   drawer.draw();
   
   

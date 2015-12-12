@@ -1,4 +1,3 @@
-
 class Force {
   
   
@@ -8,6 +7,12 @@ class Force {
     this.floaters=floaters;
   }
   
+  //interaction matrix
+  int[][] matrix;
+  void SetMatrix(int[][] matrix){
+    this.matrix=matrix;
+  }
+
   
   
   
@@ -35,15 +40,61 @@ class Force {
     f_attraction=fa;
     
     
+    
     floater_vr=fvr;
  }
+ 
+ Force(Force f){
+    //independent movement's laws
+    r_repulsion=f.r_repulsion;
+    f_repulsion=f.f_repulsion;
+    r_still=f.r_still;
+    r_attraction= f.r_attraction;
+    f_attraction=f.f_attraction;
+    
+    
+    
+    floater_vr=f.floater_vr;
+ }
+ 
+ 
+ 
+//void CreateMatrix(){
+//    matrix = new int[floaters.size()][floaters.size()];
+    
+//    for (int i = 0; i < floaters.size(); i++) {
+//      for (int j = 0; j < floaters.size(); j++) {
+//        if(Math.abs(i-j) == 1) matrix[i][j] = 1;
+//        else matrix[i][j] = 0;
+//      }
+//    }
+//  }
+ 
+// void CreateMatrixZeros(){
+//    matrix = new int[floaters.size()][floaters.size()];
+    
+//    for (int i = 0; i < floaters.size(); i++) {
+//      for (int j = 0; j < floaters.size(); j++) {
+//        matrix[i][j] = 0;
+//      }
+//    }
+//  }
+   
   
   
   
-  
-  
-   //virtuall   
-   void Apply(){}
+  void Apply(){
+    for (int i = 0; i < floaters.size(); i++) {
+      //determine relative velocities
+      for (int j = 0; j < floaters.size(); j++) {
+        if (matrix[i][j] > 0){
+          for(int k=0; k < matrix[i][j]; k++){
+            Interract(floaters.get(i), floaters.get(j));
+          }
+        }
+      }
+    }
+  }
   
 
 
@@ -120,14 +171,3 @@ class Force {
  
 }   
    
-
-   
-   
-   
-   
-  
-  
-  
-  
-  
-  

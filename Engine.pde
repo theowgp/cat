@@ -4,20 +4,23 @@ class Engine {
   
   
   
-    
-  
+
   
   //array of floaters
   ArrayList<Floater> birds = new ArrayList<Floater>();
       
   //array of floaters
   ArrayList<Floater> floaters = new ArrayList<Floater>();
+  //number of floaters
+  int n; 
   
   //array of floaters and birds
   ArrayList<Floater> agents = new ArrayList<Floater>();
+  //number of birds
+  int m;
   
   //array of floaters and agents in the net
-  ArrayList<Floater> net = new ArrayList<Floater>();
+  ArrayList<Integer> net = new ArrayList<Integer>();
   
   //size of a foater
   float s;
@@ -33,7 +36,7 @@ class Engine {
   Flocking flocking;
   float friction;
   
-  float sensitivity = 0.4;
+  float sensitivity = 0.8;
   
  
  
@@ -49,46 +52,63 @@ class Engine {
     
     this.elasticity=elst;
     this.flocking=flk;
+    this.n=n;
+    this.m=m;
     
     
     
     //create initial floater
     for (int i = 0; i < n; i++) {
-      floaters.add(new Floater(elasticity.floater_vr, s));
+      floaters.add(new Floater(elasticity.floater_vr, s, false));
       floaters.get(i).number = m + i;
-      floaters.get(i).isabird = false;
+      
     }
     for (int i = 1; i < n-1; i++) {
-      floaters.get(i).left  = floaters.get(i-1);
-      floaters.get(i).right = floaters.get(i+1);
+      floaters.get(i).left  = i-1;
+      floaters.get(i).right = i+1;
     }
-    floaters.get(0).left = null;
-    floaters.get(0).right = floaters.get(1);
-    floaters.get(n-1).left = floaters.get(n-2);
-    floaters.get(n-1).right = null;
+    floaters.get(0).left = -1;
+    floaters.get(0).right = 1;
+    floaters.get(n-1).left = n-2;
+    floaters.get(n-1).right = -1;
     
-    
+        
     //creating birds
     for (int i = 0; i < m; i++) {
-      birds.add(new Floater(flocking.floater_vr, s));
-      birds.get(i).left  = null;
-      birds.get(i).right = null;
+      birds.add(new Floater(flocking.floater_vr, s, true));
+      birds.get(i).left  = -1;
+      birds.get(i).right = -1;
       birds.get(i).number = i;
-      birds.get(i).isabird = true;
     }
     
     //create agents
     agents.addAll(birds);
     agents.addAll(floaters);
     
-    //create the net
-    net.addAll(floaters);
+    
+    //add floaters to the net 
+    for (int i = 0; i < n; i++) {
+      net.add(m + i);
+    }
+    
     
  
-    elasticity.SetFloaters(net);
+    
     flocking.SetFloaters(birds);
+    flocking.CreateMatrix();
     
-    
+    elasticity.SetFloaters(agents);
+    //create incidency matrix for elasticity
+    int [][] matrix = new int[m+n][m+n];
+    for(int i = 0; i < m + n; i++){
+      for(int j = 0; j < m + n; j++){
+        if(i >= m && j >= m && Math.abs(i-j) == 1) matrix[i][j] = 1;
+        else  matrix[i][j] = 0;
+         
+      }
+    }
+    elasticity.SetMatrix(matrix);
+  
  }
   
   
@@ -108,21 +128,28 @@ class Engine {
     Collisions();
       
     //enable interactions with the last edge
-    for (int i = 0; i < agents.size(); i++) {
+    for (int i = 0; i < m+n; i++) {
       if(!agents.get(i).ilr){
-        if(agents.get(i).left!=null && agents.get(i).right!=null){
-          if( DistancePointLine(agents.get(i), agents.get(i).left, agents.get(i).right) > agents.get(i).s ){//dminf1f2){
-          agents.get(i).ilr = true;
+        if(agents.get(i).left >= 0 && agents.get(i).right >= 0){
+          if( DistancePointLine(agents.get(i), agents.get(agents.get(i).left), agents.get(agents.get(i).right)) > agents.get(i).s ){//dminf1f2){
+            agents.get(i).ilr = true;
+            if(i==1)println("WTF1");
+          }
+          else{
+            agents.get(i).ilr = false;
           }
         }
         else{
           agents.get(i).ilr = true;
+          if(i==1)println("WTF2");
         }
       }
     }
+    //println(agents.get(1).ilr);
+    //println(DistancePointLine(agents.get(1), agents.get(agents.get(1).left), agents.get(agents.get(1).right)));
 
 
-    for (int i = 0; i < agents.size(); i++) {
+    for (int i = 0; i < m+n; i++) {
       PlugIn(i);
       ThrowOut(i);
       //if(!PlugIn(i))ThrowOut(i);
@@ -199,7 +226,7 @@ class Engine {
   
   void DetermineVelocities(){
     //flocking.Apply();//for birds    
-    //elasticity.Apply();//for floaters
+    elasticity.Apply();//for floaters
   }
   
  
@@ -208,71 +235,217 @@ class Engine {
  
  
 
- boolean PlugIn(int k){
-  boolean res = false; 
-  for (int i = 1; i < net.size(); i++) {
-     if( ( agents.get(k) != net.get(i-1) && agents.get(k) != net.get(i) && IsOnTheLineBetween(agents.get(k), net.get(i-1), net.get(i))) ){
-       //if( (agents.get(k).left != null && agents.get(k).right != null) && (agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i)) )agents.get(k).ilr = false;
-       if( (agents.get(k).left != null && agents.get(k).right != null) && (agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i)) ){
-         if(agents.get(k).ilr){
-             net.add(i, agents.get(k));
-             net.get(i-1).right = net.get(i);
-             net.get(i+1).left = net.get(i);
+ //boolean PlugIn(int k){
+ // boolean res = false; 
+ // for (int i = 1; i < net.size(); i++) {
+ //    if( ( agents.get(k) != net.get(i-1) && agents.get(k) != net.get(i) && IsOnTheLineBetween(agents.get(k), net.get(i-1), net.get(i))) ){
+ //      //if( (agents.get(k).left != null && agents.get(k).right != null) && (agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i)) )agents.get(k).ilr = false;
+ //      if( (agents.get(k).left != null && agents.get(k).right != null) && ( (agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i)) || (agents.get(k).left == net.get(i) && agents.get(k).right == net.get(i-1)) ) ){
+ //        if(agents.get(k).ilr){
+ //            net.add(i, agents.get(k));
+ //            net.get(i-1).right = net.get(i);
+ //            net.get(i+1).left = net.get(i);
              
-             net.get(i).right = net.get(i+1);
-             net.get(i).left = net.get(i-1);
-             res = true;
-         }
-       }
-       else{
-         net.add(i, agents.get(k));
-         net.get(i-1).right = net.get(i);
-         net.get(i+1).left = net.get(i);
+ //            net.get(i).right = net.get(i+1); //<>//
+ //            net.get(i).left = net.get(i-1);
+ //            res = true;
+ //        }
+ //      }
+ //      else{
+ //        net.add(i, agents.get(k));
+ //        net.get(i-1).right = net.get(i);
+ //        net.get(i+1).left = net.get(i);
          
-         net.get(i).right = net.get(i+1);
-         net.get(i).left = net.get(i-1);
-         res = true;
-       }
-     }
-  }
-  if(res==true)agents.get(k).ilr = false;
-  //if(res==true){println("in: ", agents.get(k).number);ShowFloaters(net);}
-  if(res==true){println("out");println("net size: ",net.size());}
-  return res;
- }
+ //        net.get(i).right = net.get(i+1);
+ //        net.get(i).left = net.get(i-1);
+ //        res = true;
+ //      }
+ //    }
+ // }
+ // if(res==true)agents.get(k).ilr = false;
+ // if(res==true){println("in: ", agents.get(k).number);ShowFloaters(net);}
+ // //if(res==true){println("out");println("net size: ",net.size());}
+ // return res;
+ //}
  
  
- //throw out agents
- boolean ThrowOut(int k){
-   boolean res = false; 
-   for (int i = 1; i < net.size()-1; i++) {
-     if(  (agents.get(k) == net.get(i) && IsOnTheLineBetween(agents.get(k), net.get(i-1), net.get(i+1))) ){ //<>//
-       if( (agents.get(k).left != null && agents.get(k).right != null) && ((agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i+1))||((agents.get(k).left == net.get(i+1) && agents.get(k).right == net.get(i-1)))) ){
-         //println(agents.get(k).ilr);
-         if(agents.get(k).ilr){
-           net.remove(i);
-           net.trimToSize();
+ ////throw out agents
+ //boolean ThrowOut(int k){
+ //  boolean res = false; 
+ //  for (int i = 1; i < net.size()-1; i++) {
+ //    if(  (agents.get(k) == net.get(i) && IsOnTheLineBetween(agents.get(k), net.get(i-1), net.get(i+1))) ){ //<>//
+ //      if( (agents.get(k).left != null && agents.get(k).right != null) && ((agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i+1))||((agents.get(k).left == net.get(i+1) && agents.get(k).right == net.get(i-1)))) ){
+ //        //println(agents.get(k).ilr);
+ //        if(agents.get(k).ilr){
+ //          net.remove(i);
+ //          net.trimToSize();
             
-           net.get(i-1).right=net.get(i);
-           net.get(i).left=net.get(i-1);
+ //          net.get(i-1).right=net.get(i);
+ //          net.get(i).left=net.get(i-1);
+ //          res = true;
+ //        }
+ //      }
+ //      else{
+ //         net.remove(i);
+ //         net.trimToSize();
+          
+ //         net.get(i-1).right=net.get(i);
+ //         net.get(i).left=net.get(i-1);
+ //         res = true;
+ //      }
+ //    }
+ //  } 
+ //  if(res==true)agents.get(k).ilr = false;
+ //  if(res==true){println("out: ", agents.get(k).number);ShowFloaters(net);}
+ //  //if(res==true){println("out");println("net size: ",net.size());}   
+ //  return res;
+ //}
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ //go through all the edges of the representative graph and 
+ //plug the floater if it is "positioned" on line segment between a pair of floaters representing an edge in the representative graph
+ boolean PlugIn(int k){
+   boolean res = false;
+   for ( Integer[] edge:GetEdges() ) {
+     if( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ){
+       println("IN");
+       println(edge[0], k, edge[1]);
+       println(agents.get(k).left , k, agents.get(k).right);
+       //println(agents.get(k).ilr);
+       if( (agents.get(k).left >= 0 && agents.get(k).right >= 0) && ((agents.get(k).left == edge[0] && agents.get(k).right == edge[1])||((agents.get(k).left == edge[1] && agents.get(k).right == edge[0]))) ){
+         println("0: ", agents.get(k).ilr);
+         if(agents.get(k).ilr){
+           AddToNet(k, edge[0], edge[1]);  
+         
            res = true;
          }
        }
        else{
-          net.remove(i);
-          net.trimToSize();
-          
-          net.get(i-1).right=net.get(i);
-          net.get(i).left=net.get(i-1);
-          res = true;
+         AddToNet(k, edge[0], edge[1]); 
+         
+         res = true;
        }
+       
      }
-   } 
-   if(res==true)agents.get(k).ilr = false;
-   //if(res==true){println("out: ", agents.get(k).number);ShowFloaters(net);}
-   if(res==true){println("out");println("net size: ",net.size());}   
+   }
+   UpdateMatrix();
+   //if(res==true){println("in");println("net size: ",net.size());}
+   //if(res)agents.get(k).ilr = false;
+   if(res)println("1: ", agents.get(k).ilr);
+   
+   if(res)println();
    return res;
  }
+ 
+ void AddToNet(int f, int f1, int f2){
+   for(int i = 1; i < net.size(); i++){
+     if( (net.get(i-1) == f1 && net.get(i) == f2) || (net.get(i-1) == f2 && net.get(i) == f1) ){
+       net.add(i, f);
+       agents.get(net.get(i)).left = net.get(i-1); 
+       agents.get(net.get(i)).right = net.get(i+1);
+       agents.get(net.get(i-1)).right = net.get(i);
+       agents.get(net.get(i+1)).left = net.get(i);
+     }
+   }
+   agents.get(f).ilr = false;
+ }
+ 
+
+ ArrayList<Integer[]> GetEdges(){
+   ArrayList<Integer[]> edges = new ArrayList<Integer[]>();
+   for (int i = 0; i < m+n; i++) {
+      for (int j = i; j < m+n; j++) {
+        if(elasticity.matrix[i][j] > 0) edges.add( new Integer[]{i, j} );
+      }
+    } 
+    return edges;
+ }
+
+
+
+
+
+ //get all incident floaters to the given floater and 
+ //check if it is "positioned" on the line segment between any two of its incident floaters 
+ boolean ThrowOut(int k){
+   
+   boolean res = false;
+   ArrayList<Integer> incdc = GetIncidentFloaters(k);  
+   for (int i = 0; i < incdc.size(); i++) {
+     for (int j = i+1; j < incdc.size(); j++) {
+       if( IsOnTheLineBetween(agents.get(k), agents.get(incdc.get(i)), agents.get(incdc.get(j))) ){
+         println("OUT");
+         println(incdc.get(i), k, incdc.get(j));
+         println(agents.get(k).left , k, agents.get(k).right);
+         //println(agents.get(k).ilr);
+         if( (agents.get(k).left >= 0 && agents.get(k).right >= 0) && ((agents.get(k).left == incdc.get(i) && agents.get(k).right == incdc.get(j))||((agents.get(k).left == incdc.get(j) && agents.get(k).right == incdc.get(i)))) ){
+            println("0: ", agents.get(k).ilr);
+            if(agents.get(k).ilr){
+              RemoveFromNet(k, incdc.get(i), incdc.get(j));
+               
+         
+              res = true;
+            }
+          }
+          else{
+            RemoveFromNet(k, incdc.get(i), incdc.get(j));
+            
+            res = true;
+          }
+       }
+     }
+   }
+   UpdateMatrix();
+   //if(res==true){println("out");println("net size: ",net.size());}
+   //if(res)agents.get(k).ilr = false;
+   if(res)println("1: ", agents.get(k).ilr);
+   
+   if(res)println();
+   return res;
+ }
+ 
+ void RemoveFromNet(int f, int f1, int f2){
+   for(int i = 1; i < net.size()-1; i++){
+     if(   ((net.get(i-1) == f1 && net.get(i+1) == f2) || (net.get(i-1) == f2 && net.get(i+1) == f1))  &&  net.get(i) == f   ){
+       net.remove(i);
+       agents.get(net.get(i-1)).right = net.get(i);
+       agents.get(net.get(i)).left = net.get(i-1);
+     }
+   }
+   agents.get(f).ilr = false;
+ }
+
+ ArrayList<Integer> GetIncidentFloaters(int k){
+   ArrayList<Integer> incdc = new ArrayList<Integer> ();
+   for (int j = 0; j < m+n; j++) {
+        if(elasticity.matrix[k][j] > 0) incdc.add(j);
+   } 
+    return incdc;
+ }
+ 
+ 
+ 
+ void UpdateMatrix(){
+   for(int i=0; i < m + n; i++){
+      for(int j=0; j < m + n; j++){
+        elasticity.matrix[i][j] = 0;
+      }
+   }
+   for(int i = 1; i < net.size(); i++){
+     elasticity.matrix[net.get(i-1)][net.get(i)]++;
+     elasticity.matrix[net.get(i)][net.get(i-1)]++;
+   }
+ }
+ 
+ 
+ 
+ 
  
  
 
@@ -315,6 +488,38 @@ class Engine {
     }
     return false;
   }
+  
+  
+  
+  
+  
+  
+  
+  int[][] GetConnectionMatrix(){
+    int[][] mtrx = new int[agents.size()][agents.size()];
+    
+    for (int i = 0; i < agents.size(); i++) {
+      for (int j = 0; j < agents.size(); j++) {
+        mtrx[i][j] = elasticity.matrix[i][j];
+      }
+    }
+    return mtrx;
+  }
+  
+  void PrintMatrix(int[][] m){
+    for (int i = 0; i < agents.size(); i++) {
+      for (int j = 0; j < agents.size(); j++) {
+        print(m[i][j],"  ");
+      }
+      println();
+    }
+    println();
+  }
+  
+  
+  
+  
+  
   
   
   

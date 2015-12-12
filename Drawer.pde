@@ -6,6 +6,11 @@ import ddf.minim.*;
 class Drawer{
     
   
+  int[][] matrix;
+  void SetMatrix(int[][] matrix){
+    this.matrix=matrix;
+  }
+  
   //array of floaters
   ArrayList<Floater> floaters = new ArrayList<Floater>();
   void SetFloaters(ArrayList<Floater> floaters){
@@ -96,11 +101,17 @@ class Drawer{
   }
   
   //connects consequent floaters with lines
-  void Connect(ArrayList<Floater> floaters){
+  //connects consequent floaters with lines
+  void Connect(){
     fill(0);
     strokeWeight(2); 
-    for (int i = 1; i < floaters.size(); i++) {
-      line(floaters.get(i-1).x, floaters.get(i-1).y, floaters.get(i).x, floaters.get(i).y);
+    for (int i = 0; i < floaters.size(); i++) {
+      for (int j = i; j < floaters.size(); j++) {
+        if(matrix[i][j] > 0){
+          //strokeWeight((int)(matrix[i][j]/3 )+1);
+          line(floaters.get(i).x, floaters.get(i).y, floaters.get(j).x, floaters.get(j).y);
+         }
+      }
     }
   }
   

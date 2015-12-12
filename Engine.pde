@@ -55,6 +55,7 @@ class Engine {
     //create initial floater
     for (int i = 0; i < n; i++) {
       floaters.add(new Floater(elasticity.floater_vr, s));
+      floaters.get(i).number = m + i;
     }
     for (int i = 1; i < n-1; i++) {
       floaters.get(i).left  = floaters.get(i-1);
@@ -71,6 +72,7 @@ class Engine {
       birds.add(new Floater(flocking.floater_vr, s));
       birds.get(i).left  = null;
       birds.get(i).right = null;
+      birds.get(i).number = i;
     }
     
     //create agents
@@ -89,29 +91,44 @@ class Engine {
   
   
   
-  
+  void ShowFloaters(ArrayList<Floater> fs){
+     println("size = ", net.size());
+     for (int i = 0; i < fs.size(); i++) {
+       print(fs.get(i), " ");
+     }
+  }
   void IterateFrame(){
-    println(net.size());
     //collide
     Collisions();
     
     //enable interactions with the last edge
-    for (int i = 1; i < net.size()-1; i++) {
-      if(!net.get(i).ilr){
-        if( DistancePointLine(net.get(i), net.get(i).left, net.get(i).right) > net.get(i).s+100 ){//dminf1f2){
-          net.get(i).ilr = true;
+    for (int i = 0; i < agents.size(); i++) {
+      if(!agents.get(i).ilr){
+        if(agents.get(i).left!=null && agents.get(i).right!=null){
+          if( DistancePointLine(agents.get(i), agents.get(i).left, agents.get(i).right) > agents.get(i).s ){//dminf1f2){
+          agents.get(i).ilr = true;
+          }
+        }
+        else{
+          agents.get(i).ilr = true;
         }
       }
     }
+    //println(DistancePointLine(agents.get(1), agents.get(1).left, agents.get(1).right));
+    //println(agents.get(1).ilr);
     
+    //print("left= ", agents.get(1).left.number, " ", "right= ", agents.get(1).right.number);
+    //println();
     
     for (int i = 0; i < agents.size(); i++) {
       PlugIn(i);
+      ThrowOut(i);
+      //if(!PlugIn(i))ThrowOut(i);
     }
     
-    for (int i = 1; i < net.size()-1; i++) {
-      //ThrowOut(i);
-    }
+    //for (int i = 1; i < net.size()-1; i++) {
+    //  ThrowOut(i);
+    //}
     
     DetermineVelocities();
     
@@ -184,7 +201,7 @@ class Engine {
   
   void DetermineVelocities(){
     //flocking.Apply();//for birds    
-    elasticity.Apply();//for floaters
+    //elasticity.Apply();//for floaters
   }
   
  
@@ -196,40 +213,86 @@ class Engine {
  boolean PlugIn(int k){
   boolean res = false; 
   for (int i = 1; i < net.size(); i++) {
-     if(k != i && k != i-1 && IsOnTheLineBetween(agents.get(k), net.get(i-1), net.get(i)) ){
-       //if( (agents.get(k).left != null && agents.get(k).right != null) && (agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i)) ){
-       //  if(agents.get(k).ilr){
-       //    net.add(i, agents.get(k));
-       //    agents.get(k).ilr = false;
-       //    res = true;
-       //  }
-       //}
-       //else{
-         agents.get(k).ilr = false;
-         net.get(i-1).right=agents.get(k);
-         net.get(i).left=agents.get(k);
-         
+     if( ( agents.get(k) != net.get(i-1) && agents.get(k) != net.get(i) && IsOnTheLineBetween(agents.get(k), net.get(i-1), net.get(i))) ){
+       //if( (agents.get(k).left != null && agents.get(k).right != null) && (agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i)) )agents.get(k).ilr = false;
+       if( (agents.get(k).left != null && agents.get(k).right != null) && (agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i)) ){
+         if(agents.get(k).ilr){
+             net.add(i, agents.get(k));
+             net.get(i-1).right = net.get(i);
+             net.get(i+1).left = net.get(i);
+             
+             net.get(i).right = net.get(i+1);
+             net.get(i).left = net.get(i-1);
+             res = true;
+         }
+       }
+       else{
          net.add(i, agents.get(k));
+         net.get(i-1).right = net.get(i);
+         net.get(i+1).left = net.get(i);
+         
          net.get(i).right = net.get(i+1);
          net.get(i).left = net.get(i-1);
          res = true;
-       //}
+         //ShowFloaters(net);
+       }
      }
   }
+  if(res==true)agents.get(k).ilr = false;
+  if(res==true)println("in");
   return res;
  }
  
  
+ //throw out agents
  boolean ThrowOut(int k){
    boolean res = false; 
-   if( IsOnTheLineBetween(net.get(k), net.get(k-1), net.get(k+1)) ){
-          net.remove(k);
+   for (int i = 1; i < net.size()-1; i++) {
+     if(  (agents.get(k) == net.get(i) && IsOnTheLineBetween(agents.get(k), net.get(i-1), net.get(i+1))) ){ /////////////ACHTUNG doen't take into account first and the last net elements //<>//
+     //println(agents.get(k).ilr);
+     //ShowFloaters(net);
+     //println();
+     //println(agents.get(k).left,  agents.get(k), agents.get(k).right);
+     //println(agents.get(k).left,  agents.get(k), agents.get(k).right);
+     //println((agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i)));
+       if( (agents.get(k).left != null && agents.get(k).right != null) && (agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i+1)) ){
+         //println(agents.get(k).ilr);
+         if(agents.get(k).ilr){
+           net.remove(i);
+           net.trimToSize();
+            
+           net.get(i-1).right=net.get(i);
+           net.get(i).left=net.get(i-1);
+           res = true;
+           //println("Out");
+         }
+       }
+       else{
+          net.remove(i);
           net.trimToSize();
+          
+          net.get(i-1).right=net.get(i);
+          net.get(i).left=net.get(i-1);
           res = true;
-          println("Out");
+          //println("aaaaaaaaaa");
+       }
+     }
    } 
+   if(res==true)agents.get(k).ilr = false;
+   if(res==true)println("out");
    return res;
  }
+ //throw out net elements
+ //boolean ThrowOut(int k){
+ //  boolean res = false; 
+ //  if( IsOnTheLineBetween(net.get(k), net.get(k-1), net.get(k+1)) ){
+ //         net.remove(k);
+ //         net.trimToSize();
+ //         res = true;
+ //         //println("Out");
+ //  } 
+ //  return res;
+ //}
  
 //float Distff1f2(int k){
 //  boolean res = false; 
@@ -256,11 +319,11 @@ class Engine {
     float y1 = f1.y - ndy*f1.s  - f.y;
     float y2 = f2.y + ndy*f2.s  - f.y;
     
-    fill(0);
-    strokeWeight(5); 
-    line(x1+ f.x,y1+f.y,x2+f.x,y2+f.y);
-    ellipseMode(CENTER);
-    //ellipse(f.x,f.y, 30, 30);
+    //fill(0);
+    //strokeWeight(5); 
+    //line(x1+ f.x,y1+f.y,x2+f.x,y2+f.y);
+    //ellipseMode(CENTER);
+    ////ellipse(f.x,f.y, 30, 30);
     
     float s = ((f.s/2)* sensitivity)*((f.s/2)* sensitivity);
     float a = x1*x1 - 2*x1*x2 + x2*x2 + y1*y1 - 2*y1*y2 + y2*y2;

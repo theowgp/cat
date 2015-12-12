@@ -30,6 +30,9 @@ class Floater {
   int frameCounteri;
   int frameCounter;
   
+  //is a bird
+  boolean isabird;
+  
   
   Floater(float floater_vr, float s) {
     //initialize random positions and random velocities

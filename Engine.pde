@@ -56,6 +56,7 @@ class Engine {
     for (int i = 0; i < n; i++) {
       floaters.add(new Floater(elasticity.floater_vr, s));
       floaters.get(i).number = m + i;
+      floaters.get(i).isabird = false;
     }
     for (int i = 1; i < n-1; i++) {
       floaters.get(i).left  = floaters.get(i-1);
@@ -73,6 +74,7 @@ class Engine {
       birds.get(i).left  = null;
       birds.get(i).right = null;
       birds.get(i).number = i;
+      birds.get(i).isabird = true;
     }
     
     //create agents
@@ -92,15 +94,19 @@ class Engine {
   
   
   void ShowFloaters(ArrayList<Floater> fs){
-     println("size = ", net.size());
+     //println("size = ", net.size());
      for (int i = 0; i < fs.size(); i++) {
-       print(fs.get(i), " ");
+       print(fs.get(i).number, " ");
      }
   }
+  
+  
+  
+  
   void IterateFrame(){
     //collide
     Collisions();
-    
+      
     //enable interactions with the last edge
     for (int i = 0; i < agents.size(); i++) {
       if(!agents.get(i).ilr){
@@ -114,22 +120,14 @@ class Engine {
         }
       }
     }
-    //println(DistancePointLine(agents.get(1), agents.get(1).left, agents.get(1).right));
-    //println(agents.get(1).ilr);
-    
-    //print("left= ", agents.get(1).left.number, " ", "right= ", agents.get(1).right.number);
-    //println();
-    
+
+
     for (int i = 0; i < agents.size(); i++) {
       PlugIn(i);
       ThrowOut(i);
       //if(!PlugIn(i))ThrowOut(i);
     }
-    
-    //for (int i = 1; i < net.size()-1; i++) {
-    //  ThrowOut(i);
-    //}
-    
+   
     DetermineVelocities();
     
     for (Floater f:agents) {
@@ -157,10 +155,10 @@ class Engine {
   
  
   void Move(Floater f) {
-    if(Allow(f)){
+    //if(Allow(f)){
       f.x += f.vx * friction;
       f.y += f.vy * friction;
-    }
+    //}
   }
   
   //does not allow floaters to move to close
@@ -234,12 +232,12 @@ class Engine {
          net.get(i).right = net.get(i+1);
          net.get(i).left = net.get(i-1);
          res = true;
-         //ShowFloaters(net);
        }
      }
   }
   if(res==true)agents.get(k).ilr = false;
-  if(res==true)println("in");
+  //if(res==true){println("in: ", agents.get(k).number);ShowFloaters(net);}
+  if(res==true){println("out");println("net size: ",net.size());}
   return res;
  }
  
@@ -248,14 +246,8 @@ class Engine {
  boolean ThrowOut(int k){
    boolean res = false; 
    for (int i = 1; i < net.size()-1; i++) {
-     if(  (agents.get(k) == net.get(i) && IsOnTheLineBetween(agents.get(k), net.get(i-1), net.get(i+1))) ){ /////////////ACHTUNG doen't take into account first and the last net elements //<>//
-     //println(agents.get(k).ilr);
-     //ShowFloaters(net);
-     //println();
-     //println(agents.get(k).left,  agents.get(k), agents.get(k).right);
-     //println(agents.get(k).left,  agents.get(k), agents.get(k).right);
-     //println((agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i)));
-       if( (agents.get(k).left != null && agents.get(k).right != null) && (agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i+1)) ){
+     if(  (agents.get(k) == net.get(i) && IsOnTheLineBetween(agents.get(k), net.get(i-1), net.get(i+1))) ){ //<>//
+       if( (agents.get(k).left != null && agents.get(k).right != null) && ((agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i+1))||((agents.get(k).left == net.get(i+1) && agents.get(k).right == net.get(i-1)))) ){
          //println(agents.get(k).ilr);
          if(agents.get(k).ilr){
            net.remove(i);
@@ -264,7 +256,6 @@ class Engine {
            net.get(i-1).right=net.get(i);
            net.get(i).left=net.get(i-1);
            res = true;
-           //println("Out");
          }
        }
        else{
@@ -274,40 +265,15 @@ class Engine {
           net.get(i-1).right=net.get(i);
           net.get(i).left=net.get(i-1);
           res = true;
-          //println("aaaaaaaaaa");
        }
      }
    } 
    if(res==true)agents.get(k).ilr = false;
-   if(res==true)println("out");
+   //if(res==true){println("out: ", agents.get(k).number);ShowFloaters(net);}
+   if(res==true){println("out");println("net size: ",net.size());}   
    return res;
  }
- //throw out net elements
- //boolean ThrowOut(int k){
- //  boolean res = false; 
- //  if( IsOnTheLineBetween(net.get(k), net.get(k-1), net.get(k+1)) ){
- //         net.remove(k);
- //         net.trimToSize();
- //         res = true;
- //         //println("Out");
- //  } 
- //  return res;
- //}
  
-//float Distff1f2(int k){
-//  boolean res = false; 
-//  for (int i = 1; i < floaters.size(); i++) {
-//     if(k != i && k != i-1 && IsOnTheLineBetween(floaters.get(k), floaters.get(i-1), floaters.get(i)) ){
-//        floaters.add(i, floaters.get(k));
-//        res = true;
-//     }
-//  }
-//  return res;
-// }
- 
- 
- 
-
  
 
   boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){

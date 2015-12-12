@@ -34,7 +34,7 @@ void setup() {
   
   
   //set Engin
-  eng = new Engine( 0,          //number of birds
+  eng = new Engine( 2,          //number of birds
                     3,          //number of floaters
                     15,         //size of a floater 
                     elasticity, //slastic force 

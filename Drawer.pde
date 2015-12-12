@@ -159,10 +159,16 @@ class Drawer{
       
       pushMatrix();
       translate(f.x, f.y);
-      strokeWeight(2); 
-      fill(255);
+      strokeWeight(2);
+      if(f.isabird) fill(255);
+      else fill(0);
       ellipseMode(CENTER); 
       ellipse(0, 0, f.s, f.s);
+      
+      
+      PFont pf = createFont("Arial",f.s,true);
+      textFont(pf,f.s);
+      text(f.number, -f.s/2, -f.s/2);
       //
       //line(-f.head.x*20, -f.head.y*20, f.head.x*20, f.head.y*20);
       //ellipseMode(CENTER); 

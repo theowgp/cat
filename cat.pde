@@ -2,8 +2,8 @@ import ddf.minim.*;
  
  
 
-int  mosquitoes = 10;
-int spiders  = 5;
+int  mosquitoes = 0;
+int spiders  = 3;
 
 
 
@@ -74,6 +74,7 @@ void draw() {
   drawer.SetFloaters(eng.agents);
   drawer.SetMatrix(eng.GetConnectionMatrix());
   drawer.Connect();
+  drawer.SetSensitivity(eng.sensitivity);
   drawer.draw();
   
   

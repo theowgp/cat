@@ -32,7 +32,10 @@ class Drawer{
   //if true frame of the the window is open and looped
   boolean open_frame;
   
-
+  float sensitivity = 0; 
+  void SetSensitivity(float sens){
+    this.sensitivity = sens;
+  }
 
   
   
@@ -174,12 +177,16 @@ class Drawer{
       pushMatrix();
       translate(f.x, f.y);
       strokeWeight(2);
-      if(f.isabird) fill(255);
-      else fill(0);
+      //if(f.isabird) fill(255);
+      //else fill(0);
+      fill(255);
       ellipseMode(CENTER); 
       ellipse(0, 0, f.s, f.s);
-      
-      
+      //draw its velocity vector
+      line(0, 0, f.vx, f.vy);
+      ellipseMode(CENTER); 
+      ellipse(f.vx, f.vy, f.s/4, f.s/4);
+      //draw a floaters number      
       PFont pf = createFont("Arial",f.s,true);
       textFont(pf,f.s);
       text(f.number, -f.s/2, -f.s/2);

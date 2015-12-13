@@ -36,7 +36,7 @@ class Engine {
   Flocking flocking;
   float friction;
   
-  float sensitivity = 0.8;
+  float sensitivity = 2;
   
  
  
@@ -227,7 +227,7 @@ class Engine {
  
 
  
-  //<>// //<>//
+  //<>// //<>// //<>// //<>//
  
  //go through all the edges of the representative graph and 
  //plug the floater if it is "positioned" on line segment between a pair of floaters representing an edge in the representative graph
@@ -274,6 +274,7 @@ class Engine {
      }
    }
    agents.get(f).ilr = false;
+   //agents.get(f).ilr = true;
  }
  
 
@@ -338,6 +339,7 @@ class Engine {
      }
    }
    agents.get(f).ilr = false;
+   //agents.get(f).ilr = true;
  }
 
  ArrayList<Integer> GetIncidentFloaters(int k){
@@ -365,40 +367,124 @@ class Engine {
  
  
  
- 
- 
+ //the same as below but with normalized velocity vector
+ boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
+   if(f.vx == 0 && f.vy == 0) return false;  
+    
+   float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
+   float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
+   float nx = ndx/ndy;
+   float ny = -1;
+   nx = (float)(nx/Math.sqrt(nx*nx+ny*ny));
+   ny = (float)(ny/Math.sqrt(nx*nx+ny*ny));
+   float cos = (float)((nx*f.vx+ny*f.vy)/Math.sqrt(f.vx*f.vx+f.vy*f.vy));
+   //float angle = min(acos(cos), PI-acos(cos));
+   if(acos(cos) > PI-acos(cos)){
+    nx=-nx;
+    ny=-ny;
+   }
+    
+   float nvx = (float)(nx*Math.sqrt(f.vx*f.vx+f.vy*f.vy));  
+   float nvy = (float)(ny*Math.sqrt(f.vx*f.vx+f.vy*f.vy));
+    
+   //pushMatrix();
+   //translate(f.x, f.y);
+   //strokeWeight(2);
+   //line(0, 0, nvx*sensitivity, nvy*sensitivity);
+   //ellipseMode(CENTER); 
+   //ellipse(nvx*sensitivity, nvy*sensitivity, f.s/4, f.s/4);
+   //popMatrix();
+    
+   float x1 = f1.x - ndx*f1.s;
+   float x2 = f2.x + ndx*f2.s;
+   float x3 = f.x;
+   float x4 = f.x + nvx;// * sensitivity;
+      
+   float y1 = f1.y - ndy*f1.s;
+   float y2 = f2.y + ndy*f2.s;
+   float y3 = f.y;
+   float y4 = f.y + nvy;// * sensitivity;
+      
+   float a1 = (y1-y2)/(x1-x2);
+   float a2 = (y3-y4)/(x3-x4);
+   float b1 = y1-a1*x1;
+   float b2 = y3-a2*x3;
+      
+   float xa = (b2 - b1) / (a1 - a2);
+   //float ya = a1 * xa + b1;
+      
+      
+     if ( (xa < max( min(x1,x2), min(x3,x4) )) || (xa > min( max(x1,x2), max(x3,x4) )) )
+       return false; // intersection is out of bound
+     else
+       return true;
+ }
 
-  boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
-    float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
-    float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
+  //checks for intersection of the velocity vector of the a floater with and edge
+  //boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
+  //  if(f.vx == 0 && f.vy == 0) return false;  
     
-    float x1 = f1.x - ndx*f1.s  - f.x;
-    float x2 = f2.x + ndx*f2.s  - f.x;
-    float y1 = f1.y - ndy*f1.s  - f.y;
-    float y2 = f2.y + ndy*f2.s  - f.y;
+  //  float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
+  //  float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
     
-    //fill(0);
-    //strokeWeight(5); 
-    //line(x1+ f.x,y1+f.y,x2+f.x,y2+f.y);
-    //ellipseMode(CENTER);
-    ////ellipse(f.x,f.y, 30, 30);
+  //  float x1 = f1.x - ndx*f1.s;
+  //  float x2 = f2.x + ndx*f2.s;
+  //  float x3 = f.x;
+  //  float x4 = f.x + f.vx;
+      
+  //  float y1 = f1.y - ndy*f1.s;
+  //  float y2 = f2.y + ndy*f2.s;
+  //  float y3 = f.y;
+  //  float y4 = f.y + f.vy;
+      
+  //  float a1 = (y1-y2)/(x1-x2);
+  //  float a2 = (y3-y4)/(x3-x4);
+  //  float b1 = y1-a1*x1;
+  //  float b2 = y3-a2*x3;
+      
+  //  float xa = (b2 - b1) / (a1 - a2);
+  //  //float ya = a1 * xa + b1;
+      
+      
+  //    if ( (xa < max( min(x1,x2), min(x3,x4) )) || (xa > min( max(x1,x2), max(x3,x4) )) )
+  //      return false; // intersection is out of bound
+  //    else
+  //      return true;
+  //}
+
+  //checks if an edge intersects the ball of radius f.s/2 in the center f.x f.y of a floater f
+  //this function requires check with f.left and f.right
+  //boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
+  //  float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
+  //  float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
     
-    float s = ((f.s/2)* sensitivity)*((f.s/2)* sensitivity);
-    float a = x1*x1 - 2*x1*x2 + x2*x2 + y1*y1 - 2*y1*y2 + y2*y2;
-    float b = 2*x1*x2 - 2*x2*x2 + 2*y1*y2 - 2*y2*y2;
-    float c = x2*x2 + y2*y2 - s;
+  //  float x1 = f1.x - ndx*f1.s  - f.x;
+  //  float x2 = f2.x + ndx*f2.s  - f.x;
+  //  float y1 = f1.y - ndy*f1.s  - f.y;
+  //  float y2 = f2.y + ndy*f2.s  - f.y;
     
-    float d = b*b - 4*a*c;
-    if (d<0) return false;
+  //  //fill(0);
+  //  //strokeWeight(5); 
+  //  //line(x1+ f.x,y1+f.y,x2+f.x,y2+f.y);
+  //  //ellipseMode(CENTER);
+  //  ////ellipse(f.x,f.y, 30, 30);
     
-    float t1 = (float)( (-b - Math.sqrt(d)) / (2*a) );
-    float t2 = (float)( (-b + Math.sqrt(d)) / (2*a) );
+  //  float s = ((f.s/2)* sensitivity)*((f.s/2)* sensitivity);
+  //  float a = x1*x1 - 2*x1*x2 + x2*x2 + y1*y1 - 2*y1*y2 + y2*y2;
+  //  float b = 2*x1*x2 - 2*x2*x2 + 2*y1*y2 - 2*y2*y2;
+  //  float c = x2*x2 + y2*y2 - s;
     
-    if(0<=t1 && t1<=1) return true;
-    if(0<=t2 && t2<=1) return true;
+  //  float d = b*b - 4*a*c;
+  //  if (d<0) return false;
     
-    return false;    
-  }
+  //  float t1 = (float)( (-b - Math.sqrt(d)) / (2*a) );
+  //  float t2 = (float)( (-b + Math.sqrt(d)) / (2*a) );
+    
+  //  if(0<=t1 && t1<=1) return true;
+  //  if(0<=t2 && t2<=1) return true;
+    
+  //  return false;    
+  //}
    
    
   boolean IsInRectangle(float x, float y, float rx, float ry, float rl, float rw){

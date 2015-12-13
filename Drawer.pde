@@ -177,9 +177,9 @@ class Drawer{
       pushMatrix();
       translate(f.x, f.y);
       strokeWeight(2);
-      //if(f.isabird) fill(255);
-      //else fill(0);
-      fill(255);
+      if(f.isabird) fill(255);
+      else fill(0);
+      //fill(255);
       ellipseMode(CENTER); 
       ellipse(0, 0, f.s, f.s);
       //draw its velocity vector

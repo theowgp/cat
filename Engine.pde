@@ -145,6 +145,7 @@ class Engine {
 
 
     for (int i = 0; i < m+n; i++) {
+      //Rebound(i);
       //PlugIn(i);
       //ThrowOut(i);
       if(!PlugIn(i))ThrowOut(i);
@@ -185,12 +186,12 @@ class Engine {
   
   //does not allow floaters to move to close
   boolean Allow(Floater f){
-  for (int i = 0; i < floaters.size(); i++) {
-    if((f != floaters.get(i))&&(dist(f.x+f.vx, f.y+f.vy, floaters.get(i).x, floaters.get(i).y) < f.s+2)){//eps)){
-      return false;                
+    for (int i = 0; i < floaters.size(); i++) {
+      if((f != floaters.get(i))&&(dist(f.x+f.vx, f.y+f.vy, floaters.get(i).x, floaters.get(i).y) < f.s+2)){//eps)){
+        return false;                
+      }
     }
-  }
-  return true;
+    return true;
   }
   
   
@@ -226,7 +227,7 @@ class Engine {
   
  
 
- 
+  //<>// //<>//
   //<>// //<>// //<>// //<>//
  
  //go through all the edges of the representative graph and 
@@ -369,7 +370,7 @@ class Engine {
  
  //the same as below but with normalized velocity vector
  boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
-   if(f.vx == 0 && f.vy == 0) return false;  
+   if(f.vx == 0 && f.vy == 0) return IsOnTheLineBetween1(f, f1, f2);  
     
    float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
    float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
@@ -379,13 +380,13 @@ class Engine {
    ny = (float)(ny/Math.sqrt(nx*nx+ny*ny));
    float cos = (float)((nx*f.vx+ny*f.vy)/Math.sqrt(f.vx*f.vx+f.vy*f.vy));
    //float angle = min(acos(cos), PI-acos(cos));
-   if(acos(cos) > PI-acos(cos)){
-    nx=-nx;
-    ny=-ny;
-   }
+   //if(acos(cos) > PI-acos(cos)){
+   // nx=-nx;
+   // ny=-ny;
+   //}
     
-   float nvx = (float)(nx*Math.sqrt(f.vx*f.vx+f.vy*f.vy));  
-   float nvy = (float)(ny*Math.sqrt(f.vx*f.vx+f.vy*f.vy));
+   float nvx = (float)(nx*Math.sqrt(f.vx*f.vx+f.vy*f.vy)*cos);  
+   float nvy = (float)(ny*Math.sqrt(f.vx*f.vx+f.vy*f.vy)*cos);
     
    //pushMatrix();
    //translate(f.x, f.y);
@@ -454,37 +455,37 @@ class Engine {
 
   //checks if an edge intersects the ball of radius f.s/2 in the center f.x f.y of a floater f
   //this function requires check with f.left and f.right
-  //boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
-  //  float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
-  //  float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
+  boolean IsOnTheLineBetween1(Floater f, Floater f1, Floater f2){
+   float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
+   float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
     
-  //  float x1 = f1.x - ndx*f1.s  - f.x;
-  //  float x2 = f2.x + ndx*f2.s  - f.x;
-  //  float y1 = f1.y - ndy*f1.s  - f.y;
-  //  float y2 = f2.y + ndy*f2.s  - f.y;
+   float x1 = f1.x - ndx*f1.s  - f.x;
+   float x2 = f2.x + ndx*f2.s  - f.x;
+   float y1 = f1.y - ndy*f1.s  - f.y;
+   float y2 = f2.y + ndy*f2.s  - f.y;
     
-  //  //fill(0);
-  //  //strokeWeight(5); 
-  //  //line(x1+ f.x,y1+f.y,x2+f.x,y2+f.y);
-  //  //ellipseMode(CENTER);
-  //  ////ellipse(f.x,f.y, 30, 30);
+   //fill(0);
+   //strokeWeight(5); 
+   //line(x1+ f.x,y1+f.y,x2+f.x,y2+f.y);
+   //ellipseMode(CENTER);
+   ////ellipse(f.x,f.y, 30, 30);
     
-  //  float s = ((f.s/2)* sensitivity)*((f.s/2)* sensitivity);
-  //  float a = x1*x1 - 2*x1*x2 + x2*x2 + y1*y1 - 2*y1*y2 + y2*y2;
-  //  float b = 2*x1*x2 - 2*x2*x2 + 2*y1*y2 - 2*y2*y2;
-  //  float c = x2*x2 + y2*y2 - s;
+   float s = ((f.s/2)* sensitivity)*((f.s/2)* sensitivity);
+   float a = x1*x1 - 2*x1*x2 + x2*x2 + y1*y1 - 2*y1*y2 + y2*y2;
+   float b = 2*x1*x2 - 2*x2*x2 + 2*y1*y2 - 2*y2*y2;
+   float c = x2*x2 + y2*y2 - s;
     
-  //  float d = b*b - 4*a*c;
-  //  if (d<0) return false;
+   float d = b*b - 4*a*c;
+   if (d<0) return false;
     
-  //  float t1 = (float)( (-b - Math.sqrt(d)) / (2*a) );
-  //  float t2 = (float)( (-b + Math.sqrt(d)) / (2*a) );
+   float t1 = (float)( (-b - Math.sqrt(d)) / (2*a) );
+   float t2 = (float)( (-b + Math.sqrt(d)) / (2*a) );
     
-  //  if(0<=t1 && t1<=1) return true;
-  //  if(0<=t2 && t2<=1) return true;
+   if(0<=t1 && t1<=1) return true;
+   if(0<=t2 && t2<=1) return true;
     
-  //  return false;    
-  //}
+   return false;    
+  }
    
    
   boolean IsInRectangle(float x, float y, float rx, float ry, float rl, float rw){
@@ -493,6 +494,67 @@ class Engine {
     }
     return false;
   }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  boolean Rebound(int k){
+   boolean res = false;
+   for ( Integer[] edge:GetEdges() ) {
+     if( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween1(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ){
+       ReboundFromEdge(agents.get(k), agents.get(edge[0]), agents.get(edge[1]));
+     }
+   }
+   return res;
+ }
+ void ReboundFromEdge(Floater f, Floater f1, Floater f2 ){
+   float dx = f1.x - f2.x; 
+   float dy = f1.y - f2.y;
+   dx = (float)( dx/Math.sqrt(dx*dx + dy*dy) ); 
+   dy = (float)( dy/Math.sqrt(dx*dx + dy*dy) );
+   
+   float nx = dx/dy;
+   float ny = -1;
+   nx = (float)(nx/Math.sqrt(nx*nx+ny*ny));
+   ny = (float)(ny/Math.sqrt(nx*nx+ny*ny));
+   
+   float v = (float)Math.sqrt(f.vx*f.vx+f.vy*f.vy);
+   
+   float dcos = (dx*f.vx+dy*f.vy)/v;
+   //float dangle = min(acos(dcos), PI-acos(dcos));
+   //if(acos(dcos) > PI-acos(dcos)){
+   //  dx= -dx;
+   //  dy= -dy;
+   //}
+     
+   float dvx = v * dx * dcos;  
+   float dvy = v * dy * dcos;
+   
+
+   
+   float ncos = (nx*f.vx+ny*f.vy)/v;
+   //float nangle = min(acos(ncos), PI-acos(ncos));
+   //if(acos(ncos) < PI-acos(ncos)){
+   //  nx= -nx;
+   //  ny= -ny;
+   //}
+          
+   float nvx = - v * nx * dcos;  
+   float nvy = - v * ny * dcos;
+   
+
+   f.vx=nvx + dvx;
+   f.vy=nvy + dvy;
+ }
+  
+  
+  
+  
   
   
   

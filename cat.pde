@@ -2,8 +2,8 @@ import ddf.minim.*;
  
  
 
-int  mosquitoes = 0;
-int spiders  = 3;
+int  mosquitoes = 3;
+int spiders  = 2;
 
 
 

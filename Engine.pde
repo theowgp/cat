@@ -64,20 +64,20 @@ class Engine {
       
     }
     for (int i = 1; i < n-1; i++) {
-      floaters.get(i).left  = i-1;
-      floaters.get(i).right = i+1;
+      floaters.get(i).left  = floaters.get(i-1);
+      floaters.get(i).right = floaters.get(i+1);
     }
-    floaters.get(0).left = -1;
-    floaters.get(0).right = 1;
-    floaters.get(n-1).left = n-2;
-    floaters.get(n-1).right = -1;
+    floaters.get(0).left = null;
+    floaters.get(0).right = floaters.get(1);
+    floaters.get(n-1).left = floaters.get(n-2);
+    floaters.get(n-1).right = null;
     
         
     //creating birds
     for (int i = 0; i < m; i++) {
       birds.add(new Floater(flocking.floater_vr, s, true));
-      birds.get(i).left  = -1;
-      birds.get(i).right = -1;
+      birds.get(i).left  = null;
+      birds.get(i).right = null;
       birds.get(i).number = i;
     }
     
@@ -113,12 +113,7 @@ class Engine {
   
   
   
-  void ShowFloaters(ArrayList<Floater> fs){
-     //println("size = ", net.size());
-     for (int i = 0; i < fs.size(); i++) {
-       print(fs.get(i).number, " ");
-     }
-  }
+
   
   
   
@@ -130,10 +125,10 @@ class Engine {
     //enable interactions with the last edge
     for (int i = 0; i < m+n; i++) {
       if(!agents.get(i).ilr){
-        if(agents.get(i).left >= 0 && agents.get(i).right >= 0){
-          if( DistancePointLine(agents.get(i), agents.get(agents.get(i).left), agents.get(agents.get(i).right)) > agents.get(i).s ){//dminf1f2){
+        if(agents.get(i).left != null && agents.get(i).right != null){
+          if( DistancePointLine(agents.get(i), agents.get(i).left, agents.get(i).right) > agents.get(i).s ){//dminf1f2){
             agents.get(i).ilr = true;
-            if(i==1)println("WTF1");
+            //if(i==1)println("WTF1");
           }
           else{
             agents.get(i).ilr = false;
@@ -141,7 +136,7 @@ class Engine {
         }
         else{
           agents.get(i).ilr = true;
-          if(i==1)println("WTF2");
+          //if(i==1)println("WTF2");
         }
       }
     }
@@ -150,9 +145,9 @@ class Engine {
 
 
     for (int i = 0; i < m+n; i++) {
-      PlugIn(i);
-      ThrowOut(i);
-      //if(!PlugIn(i))ThrowOut(i);
+      //PlugIn(i);
+      //ThrowOut(i);
+      if(!PlugIn(i))ThrowOut(i);
     }
    
     DetermineVelocities();
@@ -223,90 +218,16 @@ class Engine {
   
   
   
-  
+  //Apply forces
   void DetermineVelocities(){
-    //flocking.Apply();//for birds    
+    flocking.Apply();//for birds    
     elasticity.Apply();//for floaters
   }
   
  
 
  
- 
- 
-
- //boolean PlugIn(int k){
- // boolean res = false; 
- // for (int i = 1; i < net.size(); i++) {
- //    if( ( agents.get(k) != net.get(i-1) && agents.get(k) != net.get(i) && IsOnTheLineBetween(agents.get(k), net.get(i-1), net.get(i))) ){
- //      //if( (agents.get(k).left != null && agents.get(k).right != null) && (agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i)) )agents.get(k).ilr = false;
- //      if( (agents.get(k).left != null && agents.get(k).right != null) && ( (agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i)) || (agents.get(k).left == net.get(i) && agents.get(k).right == net.get(i-1)) ) ){
- //        if(agents.get(k).ilr){
- //            net.add(i, agents.get(k));
- //            net.get(i-1).right = net.get(i);
- //            net.get(i+1).left = net.get(i);
-             
- //            net.get(i).right = net.get(i+1); //<>//
- //            net.get(i).left = net.get(i-1);
- //            res = true;
- //        }
- //      }
- //      else{
- //        net.add(i, agents.get(k));
- //        net.get(i-1).right = net.get(i);
- //        net.get(i+1).left = net.get(i);
-         
- //        net.get(i).right = net.get(i+1);
- //        net.get(i).left = net.get(i-1);
- //        res = true;
- //      }
- //    }
- // }
- // if(res==true)agents.get(k).ilr = false;
- // if(res==true){println("in: ", agents.get(k).number);ShowFloaters(net);}
- // //if(res==true){println("out");println("net size: ",net.size());}
- // return res;
- //}
- 
- 
- ////throw out agents
- //boolean ThrowOut(int k){
- //  boolean res = false; 
- //  for (int i = 1; i < net.size()-1; i++) {
- //    if(  (agents.get(k) == net.get(i) && IsOnTheLineBetween(agents.get(k), net.get(i-1), net.get(i+1))) ){ //<>//
- //      if( (agents.get(k).left != null && agents.get(k).right != null) && ((agents.get(k).left == net.get(i-1) && agents.get(k).right == net.get(i+1))||((agents.get(k).left == net.get(i+1) && agents.get(k).right == net.get(i-1)))) ){
- //        //println(agents.get(k).ilr);
- //        if(agents.get(k).ilr){
- //          net.remove(i);
- //          net.trimToSize();
-            
- //          net.get(i-1).right=net.get(i);
- //          net.get(i).left=net.get(i-1);
- //          res = true;
- //        }
- //      }
- //      else{
- //         net.remove(i);
- //         net.trimToSize();
-          
- //         net.get(i-1).right=net.get(i);
- //         net.get(i).left=net.get(i-1);
- //         res = true;
- //      }
- //    }
- //  } 
- //  if(res==true)agents.get(k).ilr = false;
- //  if(res==true){println("out: ", agents.get(k).number);ShowFloaters(net);}
- //  //if(res==true){println("out");println("net size: ",net.size());}   
- //  return res;
- //}
- 
- 
- 
- 
- 
- 
- 
+  //<>// //<>//
  
  //go through all the edges of the representative graph and 
  //plug the floater if it is "positioned" on line segment between a pair of floaters representing an edge in the representative graph
@@ -314,12 +235,12 @@ class Engine {
    boolean res = false;
    for ( Integer[] edge:GetEdges() ) {
      if( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ){
-       println("IN");
-       println(edge[0], k, edge[1]);
-       println(agents.get(k).left , k, agents.get(k).right);
+       //println("IN");
+       //println(edge[0], k, edge[1]);
+       //println(agents.get(k).left , k, agents.get(k).right);
        //println(agents.get(k).ilr);
-       if( (agents.get(k).left >= 0 && agents.get(k).right >= 0) && ((agents.get(k).left == edge[0] && agents.get(k).right == edge[1])||((agents.get(k).left == edge[1] && agents.get(k).right == edge[0]))) ){
-         println("0: ", agents.get(k).ilr);
+       if( (agents.get(k).left != null && agents.get(k).right != null) && ((agents.get(k).left == agents.get(edge[0]) && agents.get(k).right == agents.get(edge[1]))||((agents.get(k).left == agents.get(edge[1]) && agents.get(k).right == agents.get(edge[0])))) ){
+         //println("0: ", agents.get(k).ilr);
          if(agents.get(k).ilr){
            AddToNet(k, edge[0], edge[1]);  
          
@@ -335,11 +256,10 @@ class Engine {
      }
    }
    UpdateMatrix();
-   //if(res==true){println("in");println("net size: ",net.size());}
+   if(res==true){println("in");println("net size: ",net.size());}
    //if(res)agents.get(k).ilr = false;
-   if(res)println("1: ", agents.get(k).ilr);
-   
-   if(res)println();
+   //if(res)println("1: ", agents.get(k).ilr);
+   //if(res)println();
    return res;
  }
  
@@ -347,10 +267,10 @@ class Engine {
    for(int i = 1; i < net.size(); i++){
      if( (net.get(i-1) == f1 && net.get(i) == f2) || (net.get(i-1) == f2 && net.get(i) == f1) ){
        net.add(i, f);
-       agents.get(net.get(i)).left = net.get(i-1); 
-       agents.get(net.get(i)).right = net.get(i+1);
-       agents.get(net.get(i-1)).right = net.get(i);
-       agents.get(net.get(i+1)).left = net.get(i);
+       agents.get(net.get(i)).left = agents.get(net.get(i-1)); 
+       agents.get(net.get(i)).right = agents.get(net.get(i+1));
+       agents.get(net.get(i-1)).right = agents.get(net.get(i));
+       agents.get(net.get(i+1)).left = agents.get(net.get(i));
      }
    }
    agents.get(f).ilr = false;
@@ -380,12 +300,12 @@ class Engine {
    for (int i = 0; i < incdc.size(); i++) {
      for (int j = i+1; j < incdc.size(); j++) {
        if( IsOnTheLineBetween(agents.get(k), agents.get(incdc.get(i)), agents.get(incdc.get(j))) ){
-         println("OUT");
-         println(incdc.get(i), k, incdc.get(j));
-         println(agents.get(k).left , k, agents.get(k).right);
+         //println("OUT");
+         //println(incdc.get(i), k, incdc.get(j));
+         //println(agents.get(k).left , k, agents.get(k).right);
          //println(agents.get(k).ilr);
-         if( (agents.get(k).left >= 0 && agents.get(k).right >= 0) && ((agents.get(k).left == incdc.get(i) && agents.get(k).right == incdc.get(j))||((agents.get(k).left == incdc.get(j) && agents.get(k).right == incdc.get(i)))) ){
-            println("0: ", agents.get(k).ilr);
+         if( (agents.get(k).left != null && agents.get(k).right != null) && ((agents.get(k).left == agents.get(incdc.get(i)) && agents.get(k).right == agents.get(incdc.get(j)))||((agents.get(k).left == agents.get(incdc.get(j)) && agents.get(k).right == agents.get(incdc.get(i))))) ){
+            //println("0: ", agents.get(k).ilr);
             if(agents.get(k).ilr){
               RemoveFromNet(k, incdc.get(i), incdc.get(j));
                
@@ -404,9 +324,8 @@ class Engine {
    UpdateMatrix();
    //if(res==true){println("out");println("net size: ",net.size());}
    //if(res)agents.get(k).ilr = false;
-   if(res)println("1: ", agents.get(k).ilr);
-   
-   if(res)println();
+   //if(res)println("1: ", agents.get(k).ilr);
+   //if(res)println();
    return res;
  }
  
@@ -414,8 +333,8 @@ class Engine {
    for(int i = 1; i < net.size()-1; i++){
      if(   ((net.get(i-1) == f1 && net.get(i+1) == f2) || (net.get(i-1) == f2 && net.get(i+1) == f1))  &&  net.get(i) == f   ){
        net.remove(i);
-       agents.get(net.get(i-1)).right = net.get(i);
-       agents.get(net.get(i)).left = net.get(i-1);
+       agents.get(net.get(i-1)).right = agents.get(net.get(i));
+       agents.get(net.get(i)).left = agents.get(net.get(i-1));
      }
    }
    agents.get(f).ilr = false;
@@ -517,7 +436,12 @@ class Engine {
   }
   
   
-  
+  void ShowFloaters(ArrayList<Floater> fs){
+     //println("size = ", net.size());
+     for (int i = 0; i < fs.size(); i++) {
+       print(fs.get(i).number, " ");
+     }
+  }
   
   
   
@@ -525,9 +449,9 @@ class Engine {
   
   //spawn a floater
   //void mouseClicked()  {
-  //  if(mouseButton == RIGHT){
-  //    floaters.add(new Floater(flocking.floater_vr, s, mouseX-s/2, mouseY-s/2));
-  //  }
+  // if(mouseButton == RIGHT){
+  //   floaters.add(new Floater(flocking.floater_vr, s, mouseX-s/2, mouseY-s/2));
+  // }
   //}
   
  //drag a seazed pbk-th floater 

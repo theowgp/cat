@@ -16,8 +16,8 @@ class Floater {
   int number;
   
   //remember last neighbors
-  int left;
-  int right;
+  Floater left;
+  Floater right;
   //allow interraction between left and right
   boolean ilr = true;
     

@@ -76,15 +76,18 @@ class Drawer{
   
   void draw() {
     //draw each floater
-    for (int i = 0; i < floaters.size(); i++) {
-      //Drawbird(floaters.get(i));
-      Drawboid(floaters.get(i));
+    for (Floater f:floaters) {
+      //if(f.isabird) Drawbird(f);
+      //else Drawboid(f);
+      Drawboid(f);
+      //Drawbird(f);
     }
   }
   
   //changes boundary values of coordinates of floaters depending on the type of the frame(open-looped or closed) 
   void FrameType(Floater f){
-    if(open_frame){
+    //if(open_frame){
+    if(f.isabird){
       //to make a looping border of the frame
       if(f.x<=-f.s/2)     f.x = width-1;
       if(f.x>=width+f.s/2) f.x = 0;

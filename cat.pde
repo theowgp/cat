@@ -2,8 +2,8 @@ import ddf.minim.*;
  
  
 
-int  mosquitoes = 2;
-int spiders  = 3;
+int  mosquitoes = 10;
+int spiders  = 5;
 
 
 
@@ -39,16 +39,16 @@ void setup() {
   
   
   //set Engin
-  eng = new Engine( mosquitoes ,          //number of birds
-                    spiders,          //number of floaters
-                    15,         //size of a floater 
-                    elasticity, //slastic force 
-                    flocking,   //flocking force
+  eng = new Engine( mosquitoes ,  //number of birds
+                    spiders,      //number of floaters
+                    15,           //size of a floater 
+                    elasticity,   //slastic force 
+                    flocking,     //flocking force
                     0.5           //friction coefficient
                     );  
   
   //set Drawer
-  drawer = new Drawer(null,//eng.floaters,                  
+  drawer = new Drawer(null,         //set floaters later                  
                        2,           //flapping rate    
                        false,        //the frame is open  
                      //true,         //connect floaters

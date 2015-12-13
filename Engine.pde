@@ -5,6 +5,8 @@ class Engine {
   
   
 
+  //Floater duck;
+  //ArrayList<Floater> bullets = new ArrayList<Floater>();
   
   //array of floaters
   ArrayList<Floater> birds = new ArrayList<Floater>();
@@ -56,6 +58,8 @@ class Engine {
     this.m=m;
     
     
+    //create duck 
+    //duck = new Floater(elasticity.floater_vr, 2*s, true);
     
     //create initial floater
     for (int i = 0; i < n; i++) {
@@ -214,7 +218,8 @@ class Engine {
     float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
     float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
    
-    elasticity.AddVelocity(f1, ndy*av, ndx*av); 
+    //elasticity.AddVelocity(f1, ndy*av, ndx*av);//it used to be like this, what a lousy mistake :((( 
+    elasticity.AddVelocity(f1, ndx*av, ndy*av);
   } 
   
   
@@ -236,31 +241,37 @@ class Engine {
    boolean res = false;
    for ( Integer[] edge:GetEdges() ) {
      if( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ){
-       //println("IN");
-       //println(edge[0], k, edge[1]);
-       //println(agents.get(k).left , k, agents.get(k).right);
-       //println(agents.get(k).ilr);
-       if( (agents.get(k).left != null && agents.get(k).right != null) && ((agents.get(k).left == agents.get(edge[0]) && agents.get(k).right == agents.get(edge[1]))||((agents.get(k).left == agents.get(edge[1]) && agents.get(k).right == agents.get(edge[0])))) ){
-         //println("0: ", agents.get(k).ilr);
-         if(agents.get(k).ilr){
-           AddToNet(k, edge[0], edge[1]);  
-         
-           res = true;
-         }
+       if(dist(agents.get(edge[0]).x, agents.get(edge[0]).y, agents.get(edge[1]).x, agents.get(edge[0]).y) < elasticity.r_still + agents.get(k).s){
+         ReboundFromEdge(agents.get(k), agents.get(edge[0]), agents.get(edge[1]));
+         println("rebound!!!!!!!!!");
        }
        else{
-         AddToNet(k, edge[0], edge[1]); 
-         
-         res = true;
-       }
+         //println("IN");
+         //println(edge[0], k, edge[1]);
+         //println(agents.get(k).left , k, agents.get(k).right);
+         //println(agents.get(k).ilr);
+         if( (agents.get(k).left != null && agents.get(k).right != null) && ((agents.get(k).left == agents.get(edge[0]) && agents.get(k).right == agents.get(edge[1]))||((agents.get(k).left == agents.get(edge[1]) && agents.get(k).right == agents.get(edge[0])))) ){
+           //println("0: ", agents.get(k).ilr);
+           if(agents.get(k).ilr){
+             AddToNet(k, edge[0], edge[1]);  
+           
+             res = true;
+           }
+         }
+         else{
+           AddToNet(k, edge[0], edge[1]); 
+           
+           res = true;
+         }
        
+       }
      }
    }
    UpdateMatrix();
-   if(res==true){println("in");println("net size: ",net.size());}
+   if(res==true){println("in");println("size: ",net.size());}
    //if(res)agents.get(k).ilr = false;
    //if(res)println("1: ", agents.get(k).ilr);
-   //if(res)println();
+   if(res)println();
    return res;
  }
  
@@ -372,12 +383,26 @@ class Engine {
  boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
    if(f.vx == 0 && f.vy == 0) return IsOnTheLineBetween1(f, f1, f2);  
     
-   float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
-   float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
-   float nx = ndx/ndy;
-   float ny = -1;
+   float dx = f2.x - f1.x; 
+   float dy = f2.y - f1.y;
+   dx = (float)( dx/Math.sqrt(dx*dx + dy*dy) ); 
+   dy = (float)( dy/Math.sqrt(dx*dx + dy*dy) );
+   
+   float nx;
+   float ny;
+   
+   if(Math.abs(dx) > 0.001){ 
+     nx = dy/dx;
+     ny = -1;
+   }
+   else{
+     nx = -1;
+     ny = dx/dy;
+   }
+   
    nx = (float)(nx/Math.sqrt(nx*nx+ny*ny));
    ny = (float)(ny/Math.sqrt(nx*nx+ny*ny));
+   
    float cos = (float)((nx*f.vx+ny*f.vy)/Math.sqrt(f.vx*f.vx+f.vy*f.vy));
    //float angle = min(acos(cos), PI-acos(cos));
    //if(acos(cos) > PI-acos(cos)){
@@ -396,13 +421,13 @@ class Engine {
    //ellipse(nvx*sensitivity, nvy*sensitivity, f.s/4, f.s/4);
    //popMatrix();
     
-   float x1 = f1.x - ndx*f1.s;
-   float x2 = f2.x + ndx*f2.s;
+   float x1 = f1.x - nx*f1.s;
+   float x2 = f2.x + nx*f2.s;
    float x3 = f.x;
    float x4 = f.x + nvx;// * sensitivity;
       
-   float y1 = f1.y - ndy*f1.s;
-   float y2 = f2.y + ndy*f2.s;
+   float y1 = f1.y - ny*f1.s;
+   float y2 = f2.y + ny*f2.s;
    float y3 = f.y;
    float y4 = f.y + nvy;// * sensitivity;
       
@@ -415,7 +440,7 @@ class Engine {
    //float ya = a1 * xa + b1;
       
       
-     if ( (xa < max( min(x1,x2), min(x3,x4) )) || (xa > min( max(x1,x2), max(x3,x4) )) )
+     if ( (xa <= max( min(x1,x2), min(x3,x4) )) || (xa >= min( max(x1,x2), max(x3,x4) )) )
        return false; // intersection is out of bound
      else
        return true;
@@ -506,20 +531,30 @@ class Engine {
   boolean Rebound(int k){
    boolean res = false;
    for ( Integer[] edge:GetEdges() ) {
-     if( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween1(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ){
+     if( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ){
        ReboundFromEdge(agents.get(k), agents.get(edge[0]), agents.get(edge[1]));
      }
    }
    return res;
  }
  void ReboundFromEdge(Floater f, Floater f1, Floater f2 ){
-   float dx = f1.x - f2.x; 
-   float dy = f1.y - f2.y;
+   float dx = f2.x - f1.x; 
+   float dy = f2.y - f1.y;
    dx = (float)( dx/Math.sqrt(dx*dx + dy*dy) ); 
    dy = (float)( dy/Math.sqrt(dx*dx + dy*dy) );
    
-   float nx = dx/dy;
-   float ny = -1;
+   float nx;
+   float ny;
+   
+   if(Math.abs(dx) > 0.001){ 
+     nx = dy/dx;
+     ny = -1;
+   }
+   else{
+     nx = -1;
+     ny = dx/dy;
+   }
+   
    nx = (float)(nx/Math.sqrt(nx*nx+ny*ny));
    ny = (float)(ny/Math.sqrt(nx*nx+ny*ny));
    
@@ -544,12 +579,14 @@ class Engine {
    //  ny= -ny;
    //}
           
-   float nvx = - v * nx * dcos;  
-   float nvy = - v * ny * dcos;
+   float nvx =  - v * nx * ncos;  
+   float nvy =  - v * ny * ncos;
    
-
-   f.vx=nvx + dvx;
-   f.vy=nvy + dvy;
+   //f.vx = nvx + dvx;
+   //f.vy = nvy + dvy;
+   f.vx = 0;
+   f.vy = 0;
+   elasticity.AddVelocity(f, nvx + dvx, nvy + dvy); 
  }
   
   
@@ -611,8 +648,12 @@ class Engine {
          floaters.get(pbk).vy = 0;
     }
     else{
-      for (int i = 0; i < floaters.size(); i++) {
-        flocking.Interract(floaters.get(i), mouseX, mouseY);
+      
+      //for (int i = 0; i < floaters.size(); i++) {
+      //  flocking.Interract(floaters.get(i), mouseX, mouseY);
+      //}
+      for (int i = 0; i < birds.size(); i++) {
+          flocking.Interract(birds.get(i), mouseX, mouseY);
       }
     }
   }
@@ -642,8 +683,11 @@ class Engine {
       }
       // if no boid has been pressed then (flocking)Interract
       else{
-        for (int i = 0; i < floaters.size(); i++) {
-          flocking.Interract(floaters.get(i), mouseX, mouseY);
+        //for (int i = 0; i < floaters.size(); i++) {
+        //  flocking.Interract(floaters.get(i), mouseX, mouseY);
+        //}
+        for (int i = 0; i < birds.size(); i++) {
+          flocking.Interract(birds.get(i), mouseX, mouseY);
         }
       }
     }

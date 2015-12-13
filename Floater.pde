@@ -36,8 +36,16 @@ class Floater {
   
   Floater(float floater_vr, float s, boolean isab) {
     //initialize random positions and random velocities
-    x = (int)random(100, width-100);
-    y = (int)random(100, height-100);
+    if(isabird){
+      x = (int)random(100, width/2-100);
+      y = (int)random(100, height/2-100);
+    }
+    else{
+      x = (int)random( width/2-100, width-100);
+      y = (int)random( height/2-100, height-100);
+    }
+    //x = (int)random(100, width-100);
+    //y = (int)random(100, height-100)
     vx = random(-floater_vr, floater_vr);
     vy = random(-floater_vr, floater_vr);
     //vx = 0;//random(-floater_vr, floater_vr);

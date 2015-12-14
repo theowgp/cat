@@ -5,12 +5,12 @@ class Engine {
   
   
 
-  //Floater duck;
-  //ArrayList<Floater> bullets = new ArrayList<Floater>();
+  Floater duck;
+  ArrayList<Floater> bullets = new ArrayList<Floater>();
   
   //array of floaters
   ArrayList<Floater> birds = new ArrayList<Floater>();
-      
+  
   //array of floaters
   ArrayList<Floater> floaters = new ArrayList<Floater>();
   //number of floaters
@@ -59,7 +59,7 @@ class Engine {
     
     
     //create duck 
-    //duck = new Floater(elasticity.floater_vr, 2*s, true);
+    duck = new Floater(elasticity.floater_vr, 2*s, true);
     
     //create initial floater
     for (int i = 0; i < n; i++) {
@@ -103,7 +103,7 @@ class Engine {
     
     elasticity.SetFloaters(agents);
     //create incidency matrix for elasticity
-    int [][] matrix = new int[m+n][m+n];
+    int [][] matrix = new int[agents.size()][agents.size()];
     for(int i = 0; i < m + n; i++){
       for(int j = 0; j < m + n; j++){
         if(i >= m && j >= m && Math.abs(i-j) == 1) matrix[i][j] = 1;
@@ -127,7 +127,7 @@ class Engine {
     Collisions();
       
     //enable interactions with the last edge
-    for (int i = 0; i < m+n; i++) {
+    for (int i = 0; i < agents.size(); i++) {
       if(!agents.get(i).ilr){
         if(agents.get(i).left != null && agents.get(i).right != null){
           if( DistancePointLine(agents.get(i), agents.get(i).left, agents.get(i).right) > agents.get(i).s ){//dminf1f2){
@@ -148,7 +148,7 @@ class Engine {
     //println(DistancePointLine(agents.get(1), agents.get(agents.get(1).left), agents.get(agents.get(1).right)));
 
 
-    for (int i = 0; i < m+n; i++) {
+    for (int i = 0; i < agents.size(); i++) {
       //Rebound(i);
       //PlugIn(i);
       //ThrowOut(i);
@@ -157,12 +157,75 @@ class Engine {
    
     DetermineVelocities();
     
+    //move agents
     for (Floater f:agents) {
       Move(f);
     }
+    //move bullets
+    for (int i=0; i<bullets.size(); i++) {
+      //BrakeEdge(bullets.get(i));
+      //BreakFloater(bullets.get(i));
+      if(bullets.get(i).x > width || bullets.get(i).y > height || bullets.get(i).x < 0 || bullets.get(i).y < 0){
+        bullets.remove(i);
+      }
+      else{
+        Move(bullets.get(i));
+      }
+    }
+    //move duck
+    Move(duck);
+    
     
   }
   
+ //boolean BrakeEdge(Floater b){
+ //   boolean res = false;
+ //   for ( Integer[] edge:GetEdges() ) {
+ //     if(IsOnTheLineBetween0(b, agents.get(edge[0]), agents.get(edge[1])) ){
+ //       for(int i = 1; i < net.size(); i++){
+ //          if( (net.get(i-1) == edge[0] && net.get(i) == edge[1]) || (net.get(i-1) == edge[1] && net.get(i) == edge[0]) ){
+ //            net.remove(i);
+ //            net.remove(i-1);
+ //          }
+ //        }   
+ //     }
+ //   }
+ //   UpdateMatrix();
+ //   return res;
+ //}
+ 
+ //boolean BreakFloater(Floater b){
+ //   boolean res = false;
+ //   for (  Floater f:agents ) {
+ //     if(BulletKillsFloater(f, b)){
+ //       for(int i = 0; i < net.size(); i++){
+ //          if(agents.get(net.get(i)) == f){
+ //            net.remove(i);
+ //            agents.remove(f);
+ //          }
+ //        }   
+ //     }
+ //   }
+ //   UpdateMatrix();
+ //   return res;
+ //}
+ //boolean BreakFloater(Floater b){
+ //  boolean res = false;
+ //  for(int i = 0; i < agents.size(); i++) {
+ //    if(BulletKillsFloater(agents.get(i), b)){
+ //      for(int j = 0; j < net.size(); j++){
+ //         if(net.get(j) == i){
+ //           net.remove(j);
+ //           agents.remove(i);
+ //         }
+ //       }   
+ //    }
+ //  }
+ //  UpdateMatrix();
+ //  return res;
+ //}
+ 
+ 
   
   
   float DistancePointLine(Floater f, Floater f1, Floater f2){
@@ -241,9 +304,9 @@ class Engine {
    boolean res = false;
    for ( Integer[] edge:GetEdges() ) {
      if( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ){
-       if(dist(agents.get(edge[0]).x, agents.get(edge[0]).y, agents.get(edge[1]).x, agents.get(edge[0]).y) < elasticity.r_still + agents.get(k).s){
+       if(dist(agents.get(edge[0]).x, agents.get(edge[0]).y, agents.get(edge[1]).x, agents.get(edge[0]).y) < elasticity.r_still ){//+ agents.get(k).s){
          ReboundFromEdge(agents.get(k), agents.get(edge[0]), agents.get(edge[1]));
-         println("rebound!!!!!!!!!");
+         //println("rebound!!!!!!!!!");
        }
        else{
          //println("IN");
@@ -292,8 +355,8 @@ class Engine {
 
  ArrayList<Integer[]> GetEdges(){
    ArrayList<Integer[]> edges = new ArrayList<Integer[]>();
-   for (int i = 0; i < m+n; i++) {
-      for (int j = i; j < m+n; j++) {
+   for (int i = 0; i < agents.size(); i++) {
+      for (int j = i; j < agents.size(); j++) {
         if(elasticity.matrix[i][j] > 0) edges.add( new Integer[]{i, j} );
       }
     } 
@@ -356,7 +419,7 @@ class Engine {
 
  ArrayList<Integer> GetIncidentFloaters(int k){
    ArrayList<Integer> incdc = new ArrayList<Integer> ();
-   for (int j = 0; j < m+n; j++) {
+   for (int j = 0; j < agents.size(); j++) {
         if(elasticity.matrix[k][j] > 0) incdc.add(j);
    } 
     return incdc;
@@ -447,36 +510,69 @@ class Engine {
  }
 
   //checks for intersection of the velocity vector of the a floater with and edge
-  //boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
-  //  if(f.vx == 0 && f.vy == 0) return false;  
+  boolean IsOnTheLineBetween0(Floater f, Floater f1, Floater f2){
+   if(f.vx == 0 && f.vy == 0) return false;  
     
-  //  float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
-  //  float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
+   float ndx = (float)((f1.x - f2.x)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y))); 
+   float ndy = (float)((f1.y - f2.y)/Math.sqrt((f1.x - f2.x)*(f1.x - f2.x) + (f1.y - f2.y)*(f1.y - f2.y)));
     
-  //  float x1 = f1.x - ndx*f1.s;
-  //  float x2 = f2.x + ndx*f2.s;
-  //  float x3 = f.x;
-  //  float x4 = f.x + f.vx;
+   float x1 = f1.x - ndx*f1.s;
+   float x2 = f2.x + ndx*f2.s;
+   float x3 = f.x;
+   float x4 = f.x + f.vx;
       
-  //  float y1 = f1.y - ndy*f1.s;
-  //  float y2 = f2.y + ndy*f2.s;
-  //  float y3 = f.y;
-  //  float y4 = f.y + f.vy;
+   float y1 = f1.y - ndy*f1.s;
+   float y2 = f2.y + ndy*f2.s;
+   float y3 = f.y;
+   float y4 = f.y + f.vy;
       
-  //  float a1 = (y1-y2)/(x1-x2);
-  //  float a2 = (y3-y4)/(x3-x4);
-  //  float b1 = y1-a1*x1;
-  //  float b2 = y3-a2*x3;
+   float a1 = (y1-y2)/(x1-x2);
+   float a2 = (y3-y4)/(x3-x4);
+   float b1 = y1-a1*x1;
+   float b2 = y3-a2*x3;
       
-  //  float xa = (b2 - b1) / (a1 - a2);
-  //  //float ya = a1 * xa + b1;
+   float xa = (b2 - b1) / (a1 - a2);
+   //float ya = a1 * xa + b1;
       
       
-  //    if ( (xa < max( min(x1,x2), min(x3,x4) )) || (xa > min( max(x1,x2), max(x3,x4) )) )
-  //      return false; // intersection is out of bound
-  //    else
-  //      return true;
-  //}
+     if ( (xa < max( min(x1,x2), min(x3,x4) )) || (xa > min( max(x1,x2), max(x3,x4) )) )
+       return false; // intersection is out of bound
+     else
+       return true;
+  }
+  
+  boolean BulletKillsFloater(Floater f, Floater bl){
+      
+   float x1 = bl.x;
+   float x2 = bl.head.x;
+   float y1 = bl.y;
+   float y2 = bl.head.y;
+    
+   //fill(0);
+   //strokeWeight(5); 
+   //line(x1+ f.x,y1+f.y,x2+f.x,y2+f.y);
+   //ellipseMode(CENTER);
+   ////ellipse(f.x,f.y, 30, 30);
+    
+   float s = ((f.s/2))*((f.s/2));
+   float a = x1*x1 - 2*x1*x2 + x2*x2 + y1*y1 - 2*y1*y2 + y2*y2;
+   float b = 2*x1*x2 - 2*x2*x2 + 2*y1*y2 - 2*y2*y2;
+   float c = x2*x2 + y2*y2 - s;
+    
+   float d = b*b - 4*a*c;
+   if (d<0) return false;
+    
+   float t1 = (float)( (-b - Math.sqrt(d)) / (2*a) );
+   float t2 = (float)( (-b + Math.sqrt(d)) / (2*a) );
+    
+   if(0<=t1 && t1<=1) return true;
+   if(0<=t2 && t2<=1) return true;
+    
+   return false;    
+  }
+  
+  
+  
 
   //checks if an edge intersects the ball of radius f.s/2 in the center f.x f.y of a floater f
   //this function requires check with f.left and f.right
@@ -633,6 +729,13 @@ class Engine {
   
   
   //spawn a floater
+  void mouseClicked()  {
+    if(mouseButton == RIGHT){
+       bullets.add(new Floater(100, duck.x, duck.y, duck.head.x*2 + duck.vx, duck.head.y*2 + duck.vy));
+    }
+  }
+  
+  //spawn a floater
   //void mouseClicked()  {
   // if(mouseButton == RIGHT){
   //   floaters.add(new Floater(flocking.floater_vr, s, mouseX-s/2, mouseY-s/2));
@@ -652,9 +755,10 @@ class Engine {
       //for (int i = 0; i < floaters.size(); i++) {
       //  flocking.Interract(floaters.get(i), mouseX, mouseY);
       //}
-      for (int i = 0; i < birds.size(); i++) {
-          flocking.Interract(birds.get(i), mouseX, mouseY);
-      }
+      //for (int i = 0; i < birds.size(); i++) {
+      //    flocking.Interract(birds.get(i), mouseX, mouseY);
+      //}
+      flocking.Interract(duck, mouseX, mouseY);
     }
   }
  
@@ -686,10 +790,14 @@ class Engine {
         //for (int i = 0; i < floaters.size(); i++) {
         //  flocking.Interract(floaters.get(i), mouseX, mouseY);
         //}
-        for (int i = 0; i < birds.size(); i++) {
-          flocking.Interract(birds.get(i), mouseX, mouseY);
-        }
+        //for (int i = 0; i < birds.size(); i++) {
+        //  flocking.Interract(birds.get(i), mouseX, mouseY);
+        //}
+        flocking.Interract(duck, mouseX, mouseY);
       }
+    }
+    else{
+      bullets.add(new Floater(100, duck.x, duck.y, duck.head.x, duck.head.y));
     }
   }
  
@@ -707,6 +815,15 @@ class Engine {
     }
     
   }
+  
+  
+  
+  //void mouseMoved() {
+  //  duck.head.x = (float)((mouseX-duck.x)/Math.sqrt((mouseX-duck.x)*(mouseX-duck.x) + (mouseY-duck.y)*(mouseY-duck.y))) * duck.s;
+  //  duck.head.y = (float)((mouseX-duck.y)/Math.sqrt((mouseX-duck.x)*(mouseX-duck.x) + (mouseY-duck.y)*(mouseY-duck.y))) * duck.s;
+  //}
+
+
 
  
  

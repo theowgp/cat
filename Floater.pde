@@ -65,6 +65,14 @@ class Floater {
     this.s=s;
   }
   
+  //for bullets
+  Floater(float floater_vr, float x, float y, float vx, float vy) {
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+  }
+  
   Floater(Floater f) {
     x = f.x;
     y = f.y;

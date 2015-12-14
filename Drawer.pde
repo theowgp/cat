@@ -17,6 +17,19 @@ class Drawer{
     this.floaters=floaters;
   }
   
+  
+  //the duck
+  Floater duck;
+  void SetDuck(Floater duck){
+    this.duck = duck;
+  }
+  //array of bullets
+  ArrayList<Floater> bullets = new ArrayList<Floater>();
+  void SetBullets(ArrayList<Floater> bullets){
+    this.bullets = bullets;
+  }
+  
+  
   int flappingRate;
   
   //background image
@@ -85,6 +98,13 @@ class Drawer{
       Drawboid(f);
       //Drawbird(f);
     }
+    for (Floater b:bullets) {
+      //if(f.isabird) Drawbird(f);
+      //else Drawboid(f);
+      Drawbullet(b);
+      //Drawbird(f);
+    }
+    Drawduck(duck);
   }
   
   //changes boundary values of coordinates of floaters depending on the type of the frame(open-looped or closed) 
@@ -201,38 +221,48 @@ class Drawer{
    }
    
    
-   // void Drawduck(Floater f) {
-   //   FrameType(f);
+   void Drawbullet(Floater f) {
+      pushMatrix();
+      translate(f.x, f.y);
+      strokeWeight(2);
+      fill(255);
+      line(0, 0, f.vx, f.vy);
+      ellipseMode(CENTER); 
+      popMatrix();
+   }
+   
+
+  void Drawduck(Floater f) {
+      FrameType(f);
       
-   //   pushMatrix();
-   //   translate(f.x, f.y);
-   //   strokeWeight(2);
-   //   fill(255);
-   //   ellipseMode(CENTER); 
-   //   ellipse(0, 0, f.s, f.s);
-   //   //draw its velocity vector
-   //   line(0, 0, f.vx, f.vy);
-   //   ellipseMode(CENTER); 
-   //   ellipse(f.vx, f.vy, f.s/4, f.s/4);
-   //   //draw a floaters number      
-   //   PFont pf = createFont("Arial",f.s,true);
-   //   textFont(pf,f.s);
-   //   //text(f.number, -f.s/2, -f.s/2);
-   //   //
-   //   //line(-f.head.x*20, -f.head.y*20, f.head.x*20, f.head.y*20);
-   //   //ellipseMode(CENTER); 
-   //   //ellipse(f.head.x*20, f.head.y*20, 10, 10);
-   //   //ellipseMode(CENTER); 
-   //   //ellipse(-f.head.x*20, -f.head.y*20, 10, 10);
-   //   //     
-   //   popMatrix();
-   //}
-   
-   //void Draebullet(Bullet b){
+      pushMatrix();
+      translate(f.x, f.y);
+      strokeWeight(2);
+      if(f.isabird) fill(255);
+      else fill(0);
+      //fill(255);
+      ellipseMode(CENTER); 
+      ellipse(0, 0, f.s, f.s);
+      //draw its velocity vector
+      f.head.x = (float)((mouseX-duck.x)/Math.sqrt((mouseX - duck.x)*(mouseX - duck.x) + (mouseY - duck.y)*(mouseY - duck.y))) * duck.s/2;
+      f.head.y = (float)((mouseY-duck.y)/Math.sqrt((mouseX - duck.x)*(mouseX - duck.x) + (mouseY - duck.y)*(mouseY - duck.y))) * duck.s/2;
+      line(0, 0, f.head.x, f.head.y);
+      ellipseMode(CENTER); 
+      ellipse(f.head.x, f.head.y, f.s/8, f.s/8);
      
-   //}
-   
-  
+      //draw a floaters number      
+      PFont pf = createFont("Arial",f.s,true);
+      textFont(pf,f.s);
+      //text(f.number, -f.s/2, -f.s/2);
+      //
+      //line(-f.head.x*20, -f.head.y*20, f.head.x*20, f.head.y*20);
+      //ellipseMode(CENTER); 
+      //ellipse(f.head.x*20, f.head.y*20, 10, 10);
+      //ellipseMode(CENTER); 
+      //ellipse(-f.head.x*20, -f.head.y*20, 10, 10);
+      //     
+      popMatrix();
+   }
   
   
    

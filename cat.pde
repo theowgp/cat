@@ -48,10 +48,10 @@ void setup() {
                     );  
   
   //set Drawer
-  drawer = new Drawer(null,         //set floaters later                  
+  drawer = new Drawer( null,         //set floaters later                  
                        2,           //flapping rate    
                        false,        //the frame is open  
-                     //true,         //connect floaters
+                       //true,         //connect floaters
                        this         //for Minim
                        );
   
@@ -75,6 +75,9 @@ void draw() {
   drawer.SetMatrix(eng.GetConnectionMatrix());
   drawer.Connect();
   drawer.SetSensitivity(eng.sensitivity);
+  
+  drawer.SetDuck(eng.duck);
+  drawer.SetBullets(eng.bullets);
   drawer.draw();
   
   
@@ -96,9 +99,9 @@ void mouseDragged()  {
 }
 
 
-//void mouseClicked()  {
-//  eng.mouseClicked();
-//}
+void mouseClicked()  {
+ eng.mouseClicked();
+}
 
 void mousePressed(){
   eng.mousePressed(); 
@@ -108,6 +111,9 @@ void mouseReleased(){
   eng.mouseReleased(); 
 }
 
+//void mouseMoved(){
+//  eng.mouseMoved(); 
+//}
 
 
 

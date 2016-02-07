@@ -38,7 +38,7 @@ class Engine {
   Flocking flocking;
   float friction;
   
-  float sensitivity = 2;
+  float sensitivity = 0.5;
   
  
  
@@ -161,6 +161,7 @@ class Engine {
     for (Floater f:agents) {
       Move(f);
     }
+    
     //move bullets
     for (int i=0; i<bullets.size(); i++) {
       //BrakeEdge(bullets.get(i));
@@ -172,6 +173,7 @@ class Engine {
         Move(bullets.get(i));
       }
     }
+    
     //move duck
     Move(duck);
     
@@ -179,19 +181,19 @@ class Engine {
   }
   
  //boolean BrakeEdge(Floater b){
- //   boolean res = false;
- //   for ( Integer[] edge:GetEdges() ) {
- //     if(IsOnTheLineBetween0(b, agents.get(edge[0]), agents.get(edge[1])) ){
- //       for(int i = 1; i < net.size(); i++){
- //          if( (net.get(i-1) == edge[0] && net.get(i) == edge[1]) || (net.get(i-1) == edge[1] && net.get(i) == edge[0]) ){
- //            net.remove(i);
- //            net.remove(i-1);
- //          }
- //        }   
- //     }
- //   }
- //   UpdateMatrix();
- //   return res;
+ //  boolean res = false;
+ //  for ( Integer[] edge:GetEdges() ) {
+ //    if(IsOnTheLineBetween0(b, agents.get(edge[0]), agents.get(edge[1])) ){
+ //      for(int i = 1; i < net.size(); i++){
+ //         if( (net.get(i-1) == edge[0] && net.get(i) == edge[1]) || (net.get(i-1) == edge[1] && net.get(i) == edge[0]) ){
+ //           net.remove(i);
+ //           net.remove(i-1);
+ //         }
+ //       }   
+ //    }
+ //  }
+ //  UpdateMatrix();
+ //  return res;
  //}
  
  //boolean BreakFloater(Floater b){
@@ -289,7 +291,7 @@ class Engine {
   
   //Apply forces
   void DetermineVelocities(){
-    flocking.Apply();//for birds    
+    //flocking.Apply();//for birds    
     elasticity.Apply();//for floaters
   }
   
@@ -304,7 +306,7 @@ class Engine {
    boolean res = false;
    for ( Integer[] edge:GetEdges() ) {
      if( k!=edge[0] && k!=edge[1] && IsOnTheLineBetween(agents.get(k), agents.get(edge[0]), agents.get(edge[1])) ){
-       if(dist(agents.get(edge[0]).x, agents.get(edge[0]).y, agents.get(edge[1]).x, agents.get(edge[0]).y) < elasticity.r_still ){//+ agents.get(k).s){
+       if(dist(agents.get(edge[0]).x, agents.get(edge[0]).y, agents.get(edge[1]).x, agents.get(edge[0]).y) < elasticity.r_still + agents.get(edge[0]).s ){//+ agents.get(k).s){
          ReboundFromEdge(agents.get(k), agents.get(edge[0]), agents.get(edge[1]));
          //println("rebound!!!!!!!!!");
        }
@@ -442,10 +444,93 @@ class Engine {
  
  
  
+ int Orientation(PVector p1, PVector p2, PVector p3){
+    float val = (p2.y - p1.y) * (p3.x - p2.x) - (p2.x - p1.x) * (p3.y - p2.y);
+     if (val == 0) return 0;  // colinear
+ 
+    return (val > 0)? 1: 2; // clock or counterclock wise
+ }
+ boolean DoIntersect(PVector p1, PVector q1, PVector p2, PVector q2)
+ {
+    // Find the four orientations needed for general and
+    // special cases
+    int o1 = Orientation(p1, q1, p2);
+    int o2 = Orientation(p1, q1, q2);
+    int o3 = Orientation(p2, q2, p1);
+    int o4 = Orientation(p2, q2, q1);
+ 
+    // General case
+    if (o1 != o2 && o3 != o4)
+        return true;
+ 
+    // Special Cases
+    // p1, q1 and p2 are colinear and p2 lies on segment p1q1
+    if (o1 == 0 && OnSegment(p1, p2, q1)) return true;
+ 
+    // p1, q1 and p2 are colinear and q2 lies on segment p1q1
+    if (o2 == 0 && OnSegment(p1, q2, q1)) return true;
+ 
+    // p2, q2 and p1 are colinear and p1 lies on segment p2q2
+    if (o3 == 0 && OnSegment(p2, p1, q2)) return true;
+ 
+     // p2, q2 and q1 are colinear and q1 lies on segment p2q2
+    if (o4 == 0 && OnSegment(p2, q1, q2)) return true;
+ 
+    return false; // Doesn't fall in any of the above cases
+ }
+ boolean OnSegment(PVector p, PVector q, PVector r)
+ {
+    if (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) &&
+        q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y))
+       return true;
+ 
+    return false;
+ } 
+ 
  //the same as below but with normalized velocity vector
  boolean IsOnTheLineBetween(Floater f, Floater f1, Floater f2){
-   if(f.vx == 0 && f.vy == 0) return IsOnTheLineBetween1(f, f1, f2);  
-    
+   float dx = f2.x - f1.x; 
+   float dy = f2.y - f1.y;
+   float dnx; 
+   float dny;
+   float d = (float)(Math.sqrt(dx*dx + dy*dy));
+     
+   
+   float x = f.x;
+   float y = f.y;
+   
+   float d1 = (x - f1.x) * (f2.y - f1.y) - (y - f1.y) * (f2.x - f1.x);
+   
+   x = f2.x - dy;  
+   x = f2.y + dx;
+   
+   float d2 = (x - f1.x) * (f2.y - f1.y) - (y - f1.y) * (f2.x - f1.x);
+   
+   if(d1*d2 < 0){
+     dnx = -dy/d;
+     dny = dx/d;
+   }
+   else{
+     dnx = dy/d;
+     dny = -dx/d;
+   }
+   
+   float v = (float)Math.sqrt(f.vx*f.vx + f.vy*f.vy);
+   if( v == 0 ) return IsOnTheLineBetween1(f, f1, f2);
+   
+   float cos = (float)((f.vx*dnx + f.vy*dny)/v);
+   
+   float vdnx = cos * v * dnx;
+   float vdny = cos * v * dny;
+   if( Math.sqrt(vdnx*vdnx + vdny*vdny) < 0.001 ) return IsOnTheLineBetween1(f, f1, f2);  
+   
+   return DoIntersect(new PVector(f1.x, f1.y), new PVector(f2.x, f2.y), new PVector(f.x, f.y), new PVector(f.x+vdnx, f.y+vdny));
+ }
+
+ 
+ //the same as below but with normalized velocity vector
+ boolean IsOnTheLineBetweenOld(Floater f, Floater f1, Floater f2){
+   if( Math.sqrt(f.vx*f.vx + f.vy*f.vy) < 0.001 ) return IsOnTheLineBetween1(f, f1, f2);  
    float dx = f2.x - f1.x; 
    float dy = f2.y - f1.y;
    dx = (float)( dx/Math.sqrt(dx*dx + dy*dy) ); 
@@ -475,6 +560,8 @@ class Engine {
     
    float nvx = (float)(nx*Math.sqrt(f.vx*f.vx+f.vy*f.vy)*cos);  
    float nvy = (float)(ny*Math.sqrt(f.vx*f.vx+f.vy*f.vy)*cos);
+   
+   if(Math.sqrt(nvx*nvx + nvy*nvy) < 0.5) return IsOnTheLineBetween1(f, f1, f2);
     
    //pushMatrix();
    //translate(f.x, f.y);
@@ -752,13 +839,13 @@ class Engine {
     }
     else{
       
-      //for (int i = 0; i < floaters.size(); i++) {
-      //  flocking.Interract(floaters.get(i), mouseX, mouseY);
-      //}
+      for (int i = 0; i < floaters.size(); i++) {
+      flocking.Interract(floaters.get(i), mouseX, mouseY);
+      }
       //for (int i = 0; i < birds.size(); i++) {
       //    flocking.Interract(birds.get(i), mouseX, mouseY);
       //}
-      flocking.Interract(duck, mouseX, mouseY);
+      //flocking.Interract(duck, mouseX, mouseY);
     }
   }
  
@@ -787,17 +874,17 @@ class Engine {
       }
       // if no boid has been pressed then (flocking)Interract
       else{
-        //for (int i = 0; i < floaters.size(); i++) {
-        //  flocking.Interract(floaters.get(i), mouseX, mouseY);
-        //}
+        for (int i = 0; i < floaters.size(); i++) {
+          flocking.Interract(floaters.get(i), mouseX, mouseY);
+        }
         //for (int i = 0; i < birds.size(); i++) {
         //  flocking.Interract(birds.get(i), mouseX, mouseY);
         //}
-        flocking.Interract(duck, mouseX, mouseY);
+        //flocking.Interract(duck, mouseX, mouseY);
       }
     }
     else{
-      bullets.add(new Floater(100, duck.x, duck.y, duck.head.x, duck.head.y));
+      //bullets.add(new Floater(100, duck.x, duck.y, duck.head.x*2 + duck.vx, duck.head.y*2 + duck.vy));
     }
   }
  

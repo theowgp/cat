@@ -3,7 +3,7 @@ import ddf.minim.*;
  
 
 int  mosquitoes = 5;
-int spiders  = 5;
+int spiders  = 3;
 
 
 

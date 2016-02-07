@@ -101,10 +101,10 @@ class Drawer{
     for (Floater b:bullets) {
       //if(f.isabird) Drawbird(f);
       //else Drawboid(f);
-      Drawbullet(b);
+      //Drawbullet(b);
       //Drawbird(f);
     }
-    Drawduck(duck);
+    //Drawduck(duck);
   }
   
   //changes boundary values of coordinates of floaters depending on the type of the frame(open-looped or closed) 

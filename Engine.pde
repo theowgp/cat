@@ -40,6 +40,8 @@ class Engine {
   
   float sensitivity = 0.5;
   
+  boolean freeze = false;
+  
  
  
   
@@ -159,7 +161,7 @@ class Engine {
     
     //move agents
     for (Floater f:agents) {
-      Move(f);
+      if(!freeze)Move(f);
     }
     
     //move bullets
@@ -292,7 +294,7 @@ class Engine {
   //Apply forces
   void DetermineVelocities(){
     //flocking.Apply();//for birds    
-    elasticity.Apply();//for floaters
+    //elasticity.Apply();//for floaters
   }
   
  
@@ -333,7 +335,7 @@ class Engine {
      }
    }
    UpdateMatrix();
-   if(res==true){println("in");println("size: ",net.size());}
+   if(res==true){println("in");println("size: ",net.size());PrintMatrix(elasticity.matrix);}
    //if(res)agents.get(k).ilr = false;
    //if(res)println("1: ", agents.get(k).ilr);
    if(res)println();
@@ -400,7 +402,7 @@ class Engine {
      }
    }
    UpdateMatrix();
-   //if(res==true){println("out");println("net size: ",net.size());}
+   if(res==true){println("out");println("net size: ",net.size());PrintMatrix(elasticity.matrix);}
    //if(res)agents.get(k).ilr = false;
    //if(res)println("1: ", agents.get(k).ilr);
    //if(res)println();

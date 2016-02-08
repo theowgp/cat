@@ -2,9 +2,11 @@ import ddf.minim.*;
  
  
 
-int  mosquitoes = 5;
-int spiders  = 3;
+int  mosquitoes = 0;
+int spiders  = 5;
 
+int framerate = 30;
+boolean framestop = false;
 
 
 
@@ -109,6 +111,22 @@ void mousePressed(){
 
 void mouseReleased(){
   eng.mouseReleased(); 
+}
+
+void keyPressed() {
+  if (key == ENTER) {
+    if(eng.freeze){
+      //frameRate(30);
+      //framestop = false;
+      eng.freeze = false;
+    }
+    else{
+      //frameRate(1);
+      //framestop = true;
+      eng.freeze = true;
+    }
+  }
+    
 }
 
 //void mouseMoved(){

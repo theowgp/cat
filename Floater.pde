@@ -48,8 +48,8 @@ class Floater {
     //y = (int)random(100, height-100)
     vx = random(-floater_vr, floater_vr);
     vy = random(-floater_vr, floater_vr);
-    //vx = 0;//random(-floater_vr, floater_vr);
-    //vy = 0;//random(-floater_vr, floater_vr);
+    vx = 0;//random(-floater_vr, floater_vr);
+    vy = 0;//random(-floater_vr, floater_vr);
     this.s = s;
     this.isabird = isab;
     
